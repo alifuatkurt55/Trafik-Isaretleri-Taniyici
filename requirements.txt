@@ -6,5 +6,6 @@ matplotlib
 seaborn
 tqdm
 scikit-image
-scikit-learn
 opencv-python-headless
+gunicorn             
+scikit-learn==1.7.2  
