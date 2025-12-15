@@ -1,9 +1,7 @@
 name: Sync to Hugging Face Hub
 on:
   push:
-    branches: [main] # Senin ana dalının adı 'master' ise burayı değiştir
-
-  # Workflow'u manuel tetiklemek için:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -13,9 +11,31 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          lfs: true # Model dosyaların büyükse burası şart!
+          lfs: true
+      
+      - name: Setup LFS and Track Files
+        run: |
+          # 1. Kimlik bilgilerini ayarla (Commit yapabilmek için)
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          
+          # 2. Git LFS kurulumu yap
+          git lfs install
+          
+          # 3. Büyük dosyaları LFS olarak işaretle (.pkl ve .h5)
+          git lfs track "*.pkl"
+          git lfs track "*.h5"
+          git lfs track "model/*"
+          
+          # 4. Bu değişikliği (attributes dosyasını) kaydet
+          git add .gitattributes
+          git add model/*.pkl
+          
+          # 5. Commit yap (Eğer değişiklik yoksa hata verme, devam et)
+          git commit -m "Convert large files to LFS" || true
+          
       - name: Push to hub
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        # AŞAĞIDAKİ SATIRDA 'kullanici_adi' ve 'space_ismi' KISIMLARINI DÜZENLE
+        # --force kullanarak Hugging Face'e gönder
         run: git push --force https://alifuatkurt:$HF_TOKEN@huggingface.co/spaces/alifuatkurt/trafik-isaretleri-taniyici main
