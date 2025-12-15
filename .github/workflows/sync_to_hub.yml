@@ -13,7 +13,7 @@ jobs:
           fetch-depth: 0
           lfs: true
       
-      - name: Fresh LFS Push (Images Included)
+      - name: Fresh LFS Push (Optimized - No Training Data)
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
@@ -21,32 +21,36 @@ jobs:
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
           
-          # 2. Geçmişi temizle (Hata almamak için sıfırdan kurulum)
+          # 2. AĞIR YÜKTEN KURTULMA ADIMI (30.000 Resmi Sil)
+          # Model zaten eğitildiği için Train klasörünü sunucuya yüklemeye gerek yok.
+          # Bu işlem GitHub'daki dosyalarınızı silmez, sadece Hugging Face'e giden paketi hafifletir.
+          echo "Gereksiz eğitim verileri temizleniyor..."
+          rm -rf dataset/Train
+          
+          # 3. Geçmişi temizle ve Git'i yeniden başlat
           rm -rf .git
           git init
           git branch -m main
           
-          # 3. LFS Kurulumu
+          # 4. LFS Kurulumu
           git lfs install
           
-          # 4. KURAL EKLEME BÖLÜMÜ (Burası Güncellendi)
-          # Hem modelleri HEM DE resimleri LFS ile takip et
+          # 5. KURAL EKLEME
+          # Sadece gerekli olan model ve test resimlerini LFS yapıyoruz
           git lfs track "*.pkl"
           git lfs track "*.h5"
+          # Train klasörünü sildiğimiz için binlerce resimle uğraşmayacak
+          # Sadece kalan test resimleri için kural ekliyoruz:
           git lfs track "*.png"
           git lfs track "*.jpg"
-          git lfs track "*.jpeg"
-          git lfs track "dataset/**/*.png"
-          git lfs track "dataset/**/*.jpg"
           
-          # 5. Kuralları kaydet
+          # 6. Kuralları kaydet
           git add .gitattributes
           
-          # 6. Dosyaları ekle
-          # (LFS kuralları sayesinde resimler ve modeller otomatik paketlenecek)
+          # 7. Dosyaları ekle
           git add .
           
-          # 7. Paketle ve Gönder
-          git commit -m "Deploy with LFS (Models and Images)"
+          # 8. Paketle ve Gönder
+          git commit -m "Deploy Optimized (Training Data Excluded)"
           
           git push --force https://alifuatkurt:$HF_TOKEN@huggingface.co/spaces/alifuatkurt/trafik-isaretleri-taniyici main
