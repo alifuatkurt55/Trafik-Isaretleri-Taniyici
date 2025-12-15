@@ -6,8 +6,9 @@ WORKDIR /code
 COPY ./requirements.txt /code/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-# Sistem araçlarını kur (unzip ve opencv bağımlılıkları)
-RUN apt-get update && apt-get install -y libgl1 libglib2.0-0 unzip chmod
+# DÜZELTME BURADA: 'chmod' kelimesini sildik.
+# unzip, libgl1 ve libglib2.0-0 kalmalı.
+RUN apt-get update && apt-get install -y libgl1 libglib2.0-0 unzip
 
 # Kullanıcı ayarları
 RUN useradd -m -u 1000 user
@@ -20,7 +21,8 @@ WORKDIR $HOME/app
 # Dosyaları kopyala
 COPY --chown=user . $HOME/app
 
-# start.sh dosyasına çalıştırma izni ver (ÖNEMLİ)
+# start.sh dosyasına çalıştırma izni ver
+# (chmod komutu sistemde zaten olduğu için bu satır çalışacaktır)
 RUN chmod +x $HOME/app/start.sh
 
 # Başlatma komutunu start.sh olarak ayarla
