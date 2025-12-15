@@ -8,11 +8,11 @@ WORKDIR /code
 COPY ./requirements.txt /code/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-# 4. GEREKLİ SİSTEM KÜTÜPHANELERİ (Düzeltilen Kısım Burası)
-# 'libgl1-mesa-glx' yerine 'libgl1' kullanıyoruz.
-RUN apt-get update && apt-get install -y libgl1 libglib2.0-0
+# 4. GEREKLİ SİSTEM KÜTÜPHANELERİ + UNZIP ARACI
+# Buraya 'unzip' komutunu ekledik
+RUN apt-get update && apt-get install -y libgl1 libglib2.0-0 unzip
 
-# 5. Kullanıcı ayarları (Hugging Face güvenlik standardı)
+# 5. Kullanıcı ayarları
 RUN useradd -m -u 1000 user
 USER user
 ENV HOME=/home/user \
@@ -20,8 +20,12 @@ ENV HOME=/home/user \
 
 WORKDIR $HOME/app
 
-# 6. Kodları kopyala
+# 6. Kodları ve ZIP dosyasını kopyala
 COPY --chown=user . $HOME/app
 
-# 7. Uygulamayı başlat
+# 7. ZIP DOSYASINI AÇ (Otomatik Dataset Kurulumu) ⚡
+# Eğer veri.zip varsa onu dataset klasörüne çıkarır
+RUN if [ -f veri.zip ]; then unzip veri.zip -d dataset; fi
+
+# 8. Uygulamayı başlat
 CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:7860", "--workers", "1", "--threads", "8"]
