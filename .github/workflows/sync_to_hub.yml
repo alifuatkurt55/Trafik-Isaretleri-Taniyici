@@ -13,7 +13,7 @@ jobs:
           fetch-depth: 0
           lfs: true
       
-      - name: Fresh LFS Push (Ultra Light - No Datasets)
+      - name: Fresh LFS Push (With ZIP Support)
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
@@ -21,17 +21,12 @@ jobs:
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
           
-          # 2. AĞIR YÜKLERİ TEMİZLEME (Hata Kaynağı)
-          echo "Gereksiz veri setleri temizleniyor..."
-          
-          # Eğitim resimlerini sil (30.000+ dosya)
+          # 2. TEMİZLİK İŞLEMİ
+          # Açık haldeki klasörleri siliyoruz ki binlerce dosya yükü olmasın.
+          # Ancak ana dizindeki 'veri.zip' dosyasına dokunmuyoruz, o gidecek.
+          echo "Gereksiz açık klasörler temizleniyor..."
           rm -rf dataset/Train
-          
-          # Test resimlerini sil (1.600+ dosya - Şu anki hatanın sebebi)
           rm -rf dataset/Test
-          
-          # (Opsiyonel) Eğer Meta klasörü varsa kalsın, yoksa sorun yok.
-          # dataset/Meta klasörü genelde küçük olduğu için kalabilir.
           
           # 3. Geçmişi tamamen sil ve Git'i yeniden başlat
           rm -rf .git
@@ -41,23 +36,24 @@ jobs:
           # 4. LFS Kurulumu
           git lfs install
           
-          # 5. KURAL EKLEME
-          # Sadece model dosyalarını büyük dosya olarak işaretle
+          # 5. KURAL EKLEME (ÖNEMLİ GÜNCELLEME)
+          # Modelleri ve görselleri takip et
           git lfs track "*.pkl"
           git lfs track "*.h5"
-          
-          # Kalan az sayıdaki resim (logo, meta vb.) için kural
           git lfs track "*.png"
           git lfs track "*.jpg"
+          
+          # ---> ZIP DOSYASI İÇİN İZİN <---
+          git lfs track "*.zip"
           
           # 6. Kuralları kaydet
           git add .gitattributes
           
           # 7. Dosyaları ekle
-          # Artık binlerce resim olmadığı için işlem saniyeler sürecek
+          # GitHub ana sayfasında veri.zip varsa, burada pakete eklenecektir.
           git add .
           
           # 8. Paketle ve Gönder
-          git commit -m "Deploy Ultra Light (Only App & Model)"
+          git commit -m "Deploy with Dataset ZIP"
           
           git push --force https://alifuatkurt:$HF_TOKEN@huggingface.co/spaces/alifuatkurt/trafik-isaretleri-taniyici main
