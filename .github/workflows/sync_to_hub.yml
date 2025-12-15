@@ -13,7 +13,7 @@ jobs:
           fetch-depth: 0
           lfs: true
       
-      - name: Fresh LFS Push (Optimized - No Training Data)
+      - name: Fresh LFS Push (Ultra Light - No Datasets)
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
@@ -21,13 +21,19 @@ jobs:
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
           
-          # 2. AĞIR YÜKTEN KURTULMA ADIMI (30.000 Resmi Sil)
-          # Model zaten eğitildiği için Train klasörünü sunucuya yüklemeye gerek yok.
-          # Bu işlem GitHub'daki dosyalarınızı silmez, sadece Hugging Face'e giden paketi hafifletir.
-          echo "Gereksiz eğitim verileri temizleniyor..."
+          # 2. AĞIR YÜKLERİ TEMİZLEME (Hata Kaynağı)
+          echo "Gereksiz veri setleri temizleniyor..."
+          
+          # Eğitim resimlerini sil (30.000+ dosya)
           rm -rf dataset/Train
           
-          # 3. Geçmişi temizle ve Git'i yeniden başlat
+          # Test resimlerini sil (1.600+ dosya - Şu anki hatanın sebebi)
+          rm -rf dataset/Test
+          
+          # (Opsiyonel) Eğer Meta klasörü varsa kalsın, yoksa sorun yok.
+          # dataset/Meta klasörü genelde küçük olduğu için kalabilir.
+          
+          # 3. Geçmişi tamamen sil ve Git'i yeniden başlat
           rm -rf .git
           git init
           git branch -m main
@@ -36,11 +42,11 @@ jobs:
           git lfs install
           
           # 5. KURAL EKLEME
-          # Sadece gerekli olan model ve test resimlerini LFS yapıyoruz
+          # Sadece model dosyalarını büyük dosya olarak işaretle
           git lfs track "*.pkl"
           git lfs track "*.h5"
-          # Train klasörünü sildiğimiz için binlerce resimle uğraşmayacak
-          # Sadece kalan test resimleri için kural ekliyoruz:
+          
+          # Kalan az sayıdaki resim (logo, meta vb.) için kural
           git lfs track "*.png"
           git lfs track "*.jpg"
           
@@ -48,9 +54,10 @@ jobs:
           git add .gitattributes
           
           # 7. Dosyaları ekle
+          # Artık binlerce resim olmadığı için işlem saniyeler sürecek
           git add .
           
           # 8. Paketle ve Gönder
-          git commit -m "Deploy Optimized (Training Data Excluded)"
+          git commit -m "Deploy Ultra Light (Only App & Model)"
           
           git push --force https://alifuatkurt:$HF_TOKEN@huggingface.co/spaces/alifuatkurt/trafik-isaretleri-taniyici main
