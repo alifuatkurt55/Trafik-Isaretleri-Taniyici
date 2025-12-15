@@ -1,24 +1,15 @@
 import os
-import cv2
 import io
 import base64
 import time
 import threading
-import joblib
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 from flask import Flask, render_template, jsonify, request
-from tqdm import tqdm
-from skimage.feature import hog
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split, learning_curve
-from sklearn.metrics import accuracy_score, confusion_matrix, roc_curve, auc
-from sklearn.preprocessing import label_binarize
-import matplotlib
 
-# GUI olmadan matplotlib kullanımı
+# ============================================================
+# 1. OPTİMİZASYON AYARLARI (LAZY LOADING İÇİN)
+# ============================================================
+# Matplotlib backend ayarını en başta yapıyoruz ama pyplot'u import etmiyoruz.
+import matplotlib
 matplotlib.use("Agg")
 
 app = Flask(__name__)
@@ -30,11 +21,15 @@ progress = {"percent": 0, "status": "", "running": False}
 logs = []
 stop_training = False
 
+# Çalışma dizini ayarı
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 UPLOAD_FOLDER = "dataset/Uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 MODEL_PATH = "model/traffic_sign_rf.pkl" 
+
+# Modeli başlangıçta None yapıyoruz (RAM tasarrufu)
+model = None
 
 # ============================================================
 # LOG FONKSİYONU
@@ -45,9 +40,30 @@ def add_log(text):
     print(text)
 
 # ============================================================
-# 1. ÖZELLİK ÇIKARMA (RENK + HOG)
+# YARDIMCI: MODEL YÜKLEME (Sadece ihtiyaç anında çalışır)
+# ============================================================
+def get_model():
+    global model
+    if model is None:
+        if os.path.exists(MODEL_PATH):
+            import joblib  # Lazy import
+            try:
+                model = joblib.load(MODEL_PATH)
+                print("Model RAM'e yüklendi.")
+            except Exception as e:
+                print(f"Model yükleme hatası: {e}")
+                return None
+    return model
+
+# ============================================================
+# 2. ÖZELLİK ÇIKARMA (RENK + HOG)
 # ============================================================
 def extract_features(image):
+    # İthalatları fonksiyon içine aldık (Lazy Import)
+    import cv2
+    import numpy as np
+    from skimage.feature import hog
+
     img_resized = cv2.resize(image, (32, 32))
     
     # --- Renk (HSV) ---
@@ -64,15 +80,23 @@ def extract_features(image):
     # --- Şekil (HOG) ---
     gray = cv2.cvtColor(img_resized, cv2.COLOR_BGR2GRAY)
     hog_features = hog(gray, orientations=8, pixels_per_cell=(4, 4),
-                       cells_per_block=(2, 2), visualize=False)
+                        cells_per_block=(2, 2), visualize=False)
     
     return np.hstack([color_features, hog_features])
 
 # ============================================================
-# 2. MODEL EĞİTİMİ
+# 3. MODEL EĞİTİMİ
 # ============================================================
 def train_model():
     global progress, logs, stop_training, model
+    
+    # Ağır kütüphaneler sadece eğitim başladığında yüklenir
+    import cv2
+    import numpy as np
+    import joblib
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.model_selection import train_test_split
+
     stop_training = False
     logs = []
 
@@ -82,6 +106,11 @@ def train_model():
     data_dir = "dataset/Train"
     image_paths, labels = [], []
     
+    if not os.path.exists(data_dir):
+        add_log("Hata: 'dataset/Train' klasörü bulunamadı!")
+        progress.update({"running": False})
+        return
+
     classes = os.listdir(data_dir)
     for label in classes:
         class_dir = os.path.join(data_dir, label)
@@ -129,17 +158,17 @@ def train_model():
     os.makedirs("model", exist_ok=True)
     joblib.dump(rf, MODEL_PATH)
     
-    # Eğitim verilerini analiz için saklayalım (ROC ve Learning Curve için gerekli)
-    # Disk alanından tasarruf için sadece Validation setini saklıyoruz
+    # Eğitim verilerini analiz için saklayalım
     joblib.dump((X_val, y_val), "model/val_data.pkl")
 
     model = rf
     progress.update({"percent": 100, "status": f"Bitti! Doğruluk: %{acc*100:.2f}", "running": False})
 
 # ============================================================
-# 3. YARDIMCI FONKSİYONLAR
+# 4. GÖRÜNTÜ İŞLEME YARDIMCISI
 # ============================================================
 def preprocess_smart(img):
+    import cv2 # Lazy Import
     h, w = img.shape[:2]
     target_size = 64
     scale = target_size / max(h, w)
@@ -152,20 +181,20 @@ def preprocess_smart(img):
     
     return cv2.copyMakeBorder(resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=[0, 0, 0])
 
-if os.path.exists(MODEL_PATH):
-    model = joblib.load(MODEL_PATH)
-else:
-    model = None
-
 def predict_general(img_or_path, true_label=None):
-    if model is None: return {"error": "Model yok"}
+    import cv2 # Lazy Import
+    
+    # Modeli al (Yüklü değilse şimdi yükler)
+    current_model = get_model()
+    if current_model is None: return {"error": "Model bulunamadı veya yüklenemedi."}
+
     if isinstance(img_or_path, str): img = cv2.imread(img_or_path)
     else: img = img_or_path
-    if img is None: return {"error": "Görsel yok"}
+    if img is None: return {"error": "Görsel okunamadı"}
 
     processed = preprocess_smart(img)
     feats = extract_features(processed)
-    prediction = int(model.predict([feats])[0])
+    prediction = int(current_model.predict([feats])[0])
 
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     _, buffer = cv2.imencode(".png", img_rgb)
@@ -209,27 +238,32 @@ def get_logs(): return jsonify({"logs": logs})
 
 @app.route("/predict_upload", methods=["POST"])
 def predict_upload():
+    import cv2
+    import numpy as np
+
     if 'image' not in request.files: return jsonify({"error": "Dosya yok"})
     file = request.files['image']
     if file.filename == '': return jsonify({"error": "Seçilmedi"})
+    
     file_bytes = np.frombuffer(file.read(), np.uint8)
     img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+    
     result = predict_general(img, true_label=None)
     if result.get("true_label") == "Bilinmiyor": result["true_label"] = "Kullanıcı Yüklemesi"
     return jsonify(result)
 
 @app.route("/predict_random_test")
 def predict_random_test():
-    row = pd.read_csv("dataset/Test.csv").sample(1).iloc[0]
-    return jsonify(predict_general(os.path.join("dataset", row["Path"]), int(row["ClassId"])))
+    import pandas as pd # Lazy Import
+    try:
+        row = pd.read_csv("dataset/Test.csv").sample(1).iloc[0]
+        return jsonify(predict_general(os.path.join("dataset", row["Path"]), int(row["ClassId"])))
+    except Exception as e:
+        return jsonify({"error": f"Test verisi okunamadı: {str(e)}"})
 
-
-
-# ============================================================
-# Toplu 50 örnek tahmin (batch test)
-# ============================================================
 @app.route("/predict_batch_test/<int:num_samples>")
 def predict_batch_test(num_samples):
+    import pandas as pd # Lazy Import
     test_csv = pd.read_csv(os.path.join("dataset", "Test.csv"))
     samples = test_csv.sample(num_samples)
 
@@ -244,13 +278,24 @@ def predict_batch_test(num_samples):
 
 @app.route("/confusion_samples/<int:num_samples>")
 def confusion_samples(num_samples=30):
-
+    # Bu fonksiyon için gerekli importlar
+    import cv2
+    import numpy as np
+    import pandas as pd
+    import joblib
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    from skimage.feature import hog
+    from sklearn.metrics import confusion_matrix
+    
     dataset_dir = "dataset"
     test_csv_path = os.path.join(dataset_dir, "Test.csv")
-    model_path = os.path.join("model", "traffic_sign_svm.pkl")
+    
+    # Model kontrolü
+    current_model = get_model()
+    if current_model is None: return jsonify({"error": "Model yok"})
 
     test_data = pd.read_csv(test_csv_path)
-    model = joblib.load(model_path)
 
     # Rastgele benzersiz örnekler
     sample_data = test_data.sample(n=num_samples)
@@ -262,9 +307,10 @@ def confusion_samples(num_samples=30):
         img = cv2.imread(img_path)
         if img is None: continue
 
-        gray = cv2.cvtColor(cv2.resize(cv2.cvtColor(img, cv2.COLOR_BGR2RGB), (64,64)), cv2.COLOR_RGB2GRAY)
-        features = hog(gray, orientations=9, pixels_per_cell=(8,8), cells_per_block=(2,2), visualize=False)
-        pred = model.predict([features])[0]
+        # extract_features fonksiyonunu kullanmak daha güvenli
+        # ama orijinal koddaki gibi manuel de yapılabilir, burada extract_features kullanıyorum:
+        feats = extract_features(preprocess_smart(img))
+        pred = current_model.predict([feats])[0]
 
         true_labels.append(int(row.ClassId))
         pred_labels.append(pred)
@@ -290,26 +336,33 @@ def confusion_samples(num_samples=30):
     
     return jsonify({"img": img_base64})
 
-
-
-# --- YENİ EKLENEN GRAFİK ROTLARI ---
-
 @app.route("/roc_plot")
 def roc_plot():
+    # Lazy Imports
+    import matplotlib.pyplot as plt
+    import joblib
+    import numpy as np
+    from sklearn.preprocessing import label_binarize
+    from sklearn.metrics import roc_curve, auc
+
     """Çok Sınıflı ROC Eğrisi (Macro-Average)"""
-    if not os.path.exists("model/val_data.pkl") or model is None:
+    current_model = get_model()
+    
+    if not os.path.exists("model/val_data.pkl") or current_model is None:
         return jsonify({"error": "Analiz için eğitim verisi bulunamadı. Lütfen modeli tekrar eğitin."})
 
     # Kaydedilmiş doğrulama verisini yükle
     X_val, y_val = joblib.load("model/val_data.pkl")
     
     # Sınıfları binarize et (One-vs-Rest mantığı için)
-    classes = model.classes_
+    classes = current_model.classes_
     y_val_bin = label_binarize(y_val, classes=classes)
-    n_classes = y_val_bin.shape[1]
-
+    
     # Olasılıkları al
-    y_score = model.predict_proba(X_val)
+    try:
+        y_score = current_model.predict_proba(X_val)
+    except:
+        return jsonify({"error": "Bu model olasılık tahmini (predict_proba) desteklemiyor."})
 
     # ROC Eğrilerini hesapla
     fpr, tpr, _ = roc_curve(y_val_bin.ravel(), y_score.ravel())
@@ -336,16 +389,19 @@ def roc_plot():
 
 @app.route("/learning_curve_plot")
 def learning_curve_plot():
-    """Öğrenme Eğrisi (Loss yerine geçer - Veri boyutu vs Başarım)"""
-    if not os.path.exists("model/val_data.pkl") or model is None:
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import joblib
+    from sklearn.model_selection import learning_curve
+
+    current_model = get_model()
+    if not os.path.exists("model/val_data.pkl") or current_model is None:
         return jsonify({"error": "Veri yok. Lütfen eğitim yapın."})
     
     X_val, y_val = joblib.load("model/val_data.pkl")
     
-    # Learning curve hesaplama (Bu işlem biraz zaman alabilir)
-    # Hızlandırmak için cv=3 ve sadece belirli boyutlarda test ediyoruz
     train_sizes, train_scores, test_scores = learning_curve(
-        model, X_val, y_val, cv=3, n_jobs=-1, 
+        current_model, X_val, y_val, cv=3, n_jobs=-1, 
         train_sizes=np.linspace(0.1, 1.0, 5),
         scoring="accuracy"
     )
@@ -371,11 +427,19 @@ def learning_curve_plot():
 
 @app.route("/full_test_analysis")
 def full_test_analysis():
-    # Mevcut Confusion Matrix kodunuz
-    if model is None: return jsonify({"error": "Model yok"})
+    import cv2
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    from sklearn.metrics import accuracy_score, confusion_matrix
+    
+    current_model = get_model()
+    if current_model is None: return jsonify({"error": "Model yok"})
+    
     test_csv = pd.read_csv("dataset/Test.csv")
     y_true, y_pred = [], []
     read_ok = 0
+    
     for _, row in test_csv.iterrows():
         img = cv2.imread(os.path.join("dataset", row["Path"]))
         if img is None: continue
@@ -383,7 +447,7 @@ def full_test_analysis():
         processed = preprocess_smart(img)
         feats = extract_features(processed)
         y_true.append(int(row["ClassId"]))
-        y_pred.append(int(model.predict([feats])[0]))
+        y_pred.append(int(current_model.predict([feats])[0]))
         
     acc = accuracy_score(y_true, y_pred)
     cm = confusion_matrix(y_true, y_pred)
@@ -405,5 +469,3 @@ def full_test_analysis():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
-
-    # app.run(debug=True)
