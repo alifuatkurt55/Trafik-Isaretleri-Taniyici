@@ -1,0 +1,21 @@
+name: Sync to Hugging Face Hub
+on:
+  push:
+    branches: [main] # Senin ana dalının adı 'master' ise burayı değiştir
+
+  # Workflow'u manuel tetiklemek için:
+  workflow_dispatch:
+
+jobs:
+  sync-to-hub:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          lfs: true # Model dosyaların büyükse burası şart!
+      - name: Push to hub
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        # AŞAĞIDAKİ SATIRDA 'kullanici_adi' ve 'space_ismi' KISIMLARINI DÜZENLE
+        run: git push https://alifuatkurt:$HF_TOKEN@huggingface.co/spaces/alifuatkurt/trafik-isaretleri-taniyici main
