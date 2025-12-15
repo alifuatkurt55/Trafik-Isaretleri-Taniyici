@@ -8,34 +8,44 @@ jobs:
   sync-to-hub:
     runs-on: ubuntu-latest
     steps:
+      # 1. Dosyaları GitHub'dan indir (Büyük dosyaları da indir)
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
           lfs: true
       
-      - name: Setup LFS and Track Files
+      - name: Fresh LFS Push
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          # 1. Kimlik bilgilerini ayarla (Commit yapabilmek için)
+          # --- AYARLAR ---
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
           
-          # 2. Git LFS kurulumu yap
-          git lfs install
+          # --- KRİTİK HAMLE: GEÇMİŞİ SİL ---
+          # Eski commit geçmişini siliyoruz ki Hugging Face eski büyük dosyaları görmesin.
+          rm -rf .git
           
-          # 3. Büyük dosyaları LFS olarak işaretle (.pkl ve .h5)
+          # --- YENİDEN BAŞLAT ---
+          git init
+          git branch -m main
+          
+          # --- LFS KURULUMU ---
+          git lfs install
+          # Büyük dosyaları takibe al
           git lfs track "*.pkl"
           git lfs track "*.h5"
-          git lfs track "model/*"
+          git lfs track "model/*.pkl"
+          git lfs track "model/*.h5"
           
-          # 4. Bu değişikliği (attributes dosyasını) kaydet
+          # .gitattributes dosyasını oluştur/ekle
           git add .gitattributes
-          git add model/*.pkl
           
-          # 5. Commit yap (Eğer değişiklik yoksa hata verme, devam et)
-          git commit -m "Convert large files to LFS" || true
+          # --- DOSYALARI EKLE VE GÖNDER ---
+          # Şimdi eklediğimizde büyük dosyalar otomatik olarak LFS'e dönüşecek
+          git add .
           
-      - name: Push to hub
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        # --force kullanarak Hugging Face'e gönder
-        run: git push --force https://alifuatkurt:$HF_TOKEN@huggingface.co/spaces/alifuatkurt/trafik-isaretleri-taniyici main
+          git commit -m "Deploy from GitHub Actions (Fresh LFS Build)"
+          
+          # Zorla gönder
+          git push --force https://alifuatkurt:$HF_TOKEN@huggingface.co/spaces/alifuatkurt/trafik-isaretleri-taniyici main
