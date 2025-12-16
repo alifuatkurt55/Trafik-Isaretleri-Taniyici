@@ -285,7 +285,7 @@ else:
 def predict_general(img_or_path, true_label=None):
     """
     Gelen bir resim verisi veya dosya yolu için tahmin işlemini yapar.
-    DÜZELTME: Meta görseli artık gerçek etiketin değil, TAHMİN EDİLEN sınıfın görselidir.
+    DÜZELTME: True Label (Gerçek Değer) için de isim metni eklendi.
     """
     if model is None: return {"error": "Model yok"} 
     
@@ -305,22 +305,22 @@ def predict_general(img_or_path, true_label=None):
     # Tahmin edilen sınıfın ismi (Örn: "DUR")
     class_name = classes_dict.get(prediction_idx, "Tanımsız İşaret")
 
-    # 2. Test Görselini Base64 Yap (Web'de göstermek için)
+    # Gerçek sınıfın ismini de bul (Eğer true_label verildiyse)
+    true_label_text = "Bilinmiyor"
+    if true_label is not None:
+        true_label_text = classes_dict.get(int(true_label), "Tanımsız")
+
+    # 2. Test Görselini Base64 Yap
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     _, buffer = cv2.imencode(".png", img_rgb)
     test_img_b64 = base64.b64encode(buffer).decode()
 
-    # 3. META GÖRSELİ AYARLAMA (DÜZELTİLEN KISIM)
-    # Varsayılan olarak meta resmi test resminin aynısı olsun (eğer meta bulunamazsa boş kalmasın)
+    # 3. META GÖRSELİ AYARLAMA
     meta_b64 = test_img_b64 
-    
-    # Burada artık true_label'a DEĞİL, prediction_idx'e bakıyoruz.
-    # Model ne tahmin ettiyse onun temiz grafiğini getiriyoruz.
     meta_path = os.path.join("dataset", "Meta", f"{prediction_idx}.png")
     
     if os.path.exists(meta_path):
         meta_img = cv2.imread(meta_path)
-        # Meta resimler bazen RGBA (şeffaf) olabilir, onları da düzgün okuyalım
         if meta_img is not None:
             _, buf_meta = cv2.imencode(".png", cv2.cvtColor(meta_img, cv2.COLOR_BGR2RGB))
             meta_b64 = base64.b64encode(buf_meta).decode()
@@ -328,10 +328,11 @@ def predict_general(img_or_path, true_label=None):
     # Sonuçları döndür
     return {
         "prediction": prediction_idx, 
-        "prediction_text": class_name,
+        "prediction_text": class_name, # Tahmin edilenin ismi
         "true_label": true_label if true_label is not None else "Bilinmiyor", 
+        "true_label_text": true_label_text, # [YENİ] Gerçek sınıfın ismi
         "test_img": test_img_b64, 
-        "meta_img": meta_b64 # Artık tahmin edilen sınıfın resmi
+        "meta_img": meta_b64 
     }
 
 # ============================================================
