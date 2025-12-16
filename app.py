@@ -1,6 +1,7 @@
 # ============================================================
 # KÜTÜPHANE İMPORTLARI (GEREKLİ MODÜLLERİN DAHİL EDİLMESİ)
 # ============================================================
+import json
 import os  # İşletim sistemi işlemleri (dosya yolu bulma, klasör oluşturma vb.) için
 import cv2  # OpenCV kütüphanesi: Görüntü işleme, okuma ve dönüştürme işlemleri için
 import io  # Bellek içi (RAM) dosya işlemleri için (grafikleri diske kaydetmeden RAM'de tutmak için)
@@ -17,7 +18,7 @@ from tqdm import tqdm  # Döngülerde ilerleme çubuğu göstermek için (Termin
 from skimage.feature import hog  # Görüntüden HOG (Histogram of Oriented Gradients) özelliklerini çıkarmak için
 from sklearn.ensemble import RandomForestClassifier  # Sınıflandırma algoritması olarak Random Forest (Rastgele Orman) kullanımı
 from sklearn.model_selection import train_test_split, learning_curve  # Veri bölme ve öğrenme eğrisi analizi
-from sklearn.metrics import accuracy_score, confusion_matrix, roc_curve, auc  # Model başarısını ölçen metrikler
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_curve, auc  # Model başarısını ölçen metrikler
 from sklearn.preprocessing import label_binarize  # ROC eğrisi çizimi için etiketleri ikili (binary) formata çevirme
 import matplotlib  # Matplotlib'in genel ayarlarını değiştirmek için
 
@@ -285,7 +286,7 @@ else:
 def predict_general(img_or_path, true_label=None):
     """
     Gelen bir resim verisi veya dosya yolu için tahmin işlemini yapar.
-    DÜZELTME: True Label (Gerçek Değer) için de isim metni eklendi.
+    DÜZELTME: Meta görseli artık gerçek etiketin değil, TAHMİN EDİLEN sınıfın görselidir.
     """
     if model is None: return {"error": "Model yok"} 
     
@@ -305,22 +306,22 @@ def predict_general(img_or_path, true_label=None):
     # Tahmin edilen sınıfın ismi (Örn: "DUR")
     class_name = classes_dict.get(prediction_idx, "Tanımsız İşaret")
 
-    # Gerçek sınıfın ismini de bul (Eğer true_label verildiyse)
-    true_label_text = "Bilinmiyor"
-    if true_label is not None:
-        true_label_text = classes_dict.get(int(true_label), "Tanımsız")
-
-    # 2. Test Görselini Base64 Yap
+    # 2. Test Görselini Base64 Yap (Web'de göstermek için)
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     _, buffer = cv2.imencode(".png", img_rgb)
     test_img_b64 = base64.b64encode(buffer).decode()
 
-    # 3. META GÖRSELİ AYARLAMA
+    # 3. META GÖRSELİ AYARLAMA (DÜZELTİLEN KISIM)
+    # Varsayılan olarak meta resmi test resminin aynısı olsun (eğer meta bulunamazsa boş kalmasın)
     meta_b64 = test_img_b64 
+    
+    # Burada artık true_label'a DEĞİL, prediction_idx'e bakıyoruz.
+    # Model ne tahmin ettiyse onun temiz grafiğini getiriyoruz.
     meta_path = os.path.join("dataset", "Meta", f"{prediction_idx}.png")
     
     if os.path.exists(meta_path):
         meta_img = cv2.imread(meta_path)
+        # Meta resimler bazen RGBA (şeffaf) olabilir, onları da düzgün okuyalım
         if meta_img is not None:
             _, buf_meta = cv2.imencode(".png", cv2.cvtColor(meta_img, cv2.COLOR_BGR2RGB))
             meta_b64 = base64.b64encode(buf_meta).decode()
@@ -328,11 +329,10 @@ def predict_general(img_or_path, true_label=None):
     # Sonuçları döndür
     return {
         "prediction": prediction_idx, 
-        "prediction_text": class_name, # Tahmin edilenin ismi
+        "prediction_text": class_name,
         "true_label": true_label if true_label is not None else "Bilinmiyor", 
-        "true_label_text": true_label_text, # [YENİ] Gerçek sınıfın ismi
         "test_img": test_img_b64, 
-        "meta_img": meta_b64 
+        "meta_img": meta_b64 # Artık tahmin edilen sınıfın resmi
     }
 
 # ============================================================
@@ -460,20 +460,38 @@ def confusion_samples(num_samples=30):
         true_labels.append(int(row.ClassId))
         pred_labels.append(pred)
 
+    # --------------------------------------------------------------------------
+    # [GÜNCELLEME] İsimleri göstermek için etiket hazırlığı
+    # --------------------------------------------------------------------------
+    # 1. Sadece bu örneklemde geçen benzersiz sınıfları bul ve sırala
+    unique_labels = sorted(list(set(true_labels + pred_labels)))
+    
+    # 2. Bu numaralara (0, 14, 25...) karşılık gelen isimleri sözlükten çek
+    tick_labels = [classes_dict.get(lbl, str(lbl)) for lbl in unique_labels]
+
     # Confusion Matrix Hesapla (Gerçek vs Tahmin Edilen)
-    cm = confusion_matrix(true_labels, pred_labels)
+    # labels=unique_labels diyerek matrisin satır/sütun sırasını sabitliyoruz
+    cm = confusion_matrix(true_labels, pred_labels, labels=unique_labels)
+    
     num_classes = cm.shape[0]
 
-    # Grafik boyutunu sınıf sayısına göre dinamik ayarla
-    fig_size = min(max(8, num_classes // 2), 40)
+    # Grafik boyutunu sınıf sayısına göre dinamik ayarla (İsimler sığsın diye biraz genişlettik)
+    fig_size = min(max(10, num_classes // 1.5), 40)
     plt.figure(figsize=(fig_size, fig_size))
     
     # Isı haritası (Heatmap) çiz
+    # xticklabels ve yticklabels ile eksenlere isimleri atıyoruz
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=True,
+        xticklabels=tick_labels, yticklabels=tick_labels,
         annot_kws={"fontsize": max(4, 12 - num_classes//20)})
+        
     plt.xlabel("Predicted (Tahmin Edilen)")
     plt.ylabel("True (Gerçek)")
     plt.title(f"Confusion Matrix ({num_samples} Örnek)")
+
+    # İsimler uzun olduğu için okunaklı olsun diye 45 derece eğik yazdırıyoruz
+    plt.xticks(rotation=45, ha='right')
+    plt.yticks(rotation=0)
 
     # Grafiği belleğe (RAM) kaydet
     buf = io.BytesIO()
@@ -572,20 +590,28 @@ def learning_curve_plot():
     plt.close()
     return jsonify({"img": base64.b64encode(buf.getvalue()).decode()})
 
+# ============================================================
+# TAM TEST ANALİZİ VE KAYIT YÖNETİMİ
+# ============================================================
+
+# Analiz sonuçlarının kaydedileceği dosya yolu
+ANALYSIS_FILE = "model/last_full_analysis.json"
+
 @app.route("/full_test_analysis")
 def full_test_analysis():
     """
-    Test.csv dosyasındaki TÜM veriler üzerinde modeli test eder.
-    Sonuç olarak büyük bir Confusion Matrix ve genel doğruluk oranını döner.
+    Test.csv üzerindeki TÜM verileri test eder, sonucu JSON dosyasına KAYDEDER ve döner.
     """
     if model is None: return jsonify({"error": "Model yok"})
+    
     test_csv = pd.read_csv("dataset/Test.csv")
     y_true, y_pred = [], []
     read_ok = 0
     
     # Tüm test verisini döngüye al
     for _, row in test_csv.iterrows():
-        img = cv2.imread(os.path.join("dataset", row["Path"]))
+        img_path = os.path.join("dataset", row["Path"])
+        img = cv2.imread(img_path)
         if img is None: continue
         read_ok += 1
         
@@ -599,24 +625,102 @@ def full_test_analysis():
         
     # Doğruluk oranını hesapla
     acc = accuracy_score(y_true, y_pred)
-    # Karmaşıklık matrisini oluştur
-    cm = confusion_matrix(y_true, y_pred)
     
-    # Matrisi çiz (Sayılar çok karmaşık olacağı için sadece renk yoğunluğu - Heatmap)
-    plt.figure(figsize=(12, 10))
-    sns.heatmap(cm, cmap="Blues")
-    plt.title(f"Confusion Matrix (Acc: %{acc*100:.2f})")
+    # --- Rapor Oluşturma ---
+    report_dict = classification_report(y_true, y_pred, output_dict=True, zero_division=0)
     
+    report_list = []
+    for key, value in report_dict.items():
+        if key.isdigit():
+            class_id = int(key)
+            class_name = classes_dict.get(class_id, "Tanımsız")
+            report_list.append({
+                "id": class_id,
+                "name": class_name,
+                "precision": f"{value['precision']:.2f}",
+                "recall": f"{value['recall']:.2f}",
+                "f1": f"{value['f1-score']:.2f}",
+                "support": value['support']
+            })
+
+    # --- Grafik Oluşturma ---
+    # Not: Full analizde tüm sınıf isimlerini yazmak grafiği çok sıkıştırabilir,
+    # bu yüzden burada sadece genel yoğunluk haritası (heatmap) bırakıldı.
+    # İsterseniz önceki kodumuzdaki gibi xticklabels ekleyebilirsiniz.
+    # --- Grafik Oluşturma (Confusion Samples Stiline Uyarlı) ---
+    
+    # 1. Tüm sınıfları (0-42) sıralı olarak alıyoruz (Tam analiz olduğu için hepsi görünmeli)
+    all_classes = sorted(classes_dict.keys())
+    
+    # 2. Bu numaralara karşılık gelen isimleri sözlükten çek
+    tick_labels = [classes_dict.get(i, str(i)) for i in all_classes]
+
+    # 3. Matrisi hesapla (labels parametresi ile sırayı sabitliyoruz)
+    cm = confusion_matrix(y_true, y_pred, labels=all_classes)
+    
+    num_classes = cm.shape[0] # Genelde 43 olacaktır
+
+    # Grafik boyutunu dinamik ayarla (43 sınıf olduğu için büyük olmalı, örn: 24x24)
+    # confusion_samples'taki mantığın aynısı, sadece minimum değeri büyüttük.
+    fig_size = max(20, num_classes // 1.5) 
+    plt.figure(figsize=(fig_size, fig_size))
+    
+    # Isı haritası (Heatmap) çiz
+    # xticklabels ve yticklabels ile eksenlere İSİMLERİ atıyoruz
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=True,
+        xticklabels=tick_labels, yticklabels=tick_labels,
+        annot_kws={"fontsize": 9}) # Yazı boyutu (Tüm tabloya sığması için küçülttük)
+        
+    plt.xlabel("Predicted (Tahmin Edilen)", fontsize=14)
+    plt.ylabel("True (Gerçek)", fontsize=14)
+    plt.title(f"Confusion Matrix (Acc: %{acc*100:.2f})", fontsize=16)
+
+    # İsimler uzun olduğu için okunaklı olsun diye 45/90 derece eğik yazdırıyoruz
+    plt.xticks(rotation=45, ha='right')
+    plt.yticks(rotation=0, fontsize=10)
+
+    # Grafiği belleğe (RAM) kaydet
     buf = io.BytesIO()
-    plt.savefig(buf, format="png")
+    plt.savefig(buf, format="png", bbox_inches='tight')
     buf.seek(0)
     plt.close()
     
-    # JSON cevabı
-    return jsonify({
-        "cm": base64.b64encode(buf.getvalue()).decode(),
-        "summary": [{"aciklama": "Test Sayısı", "deger": read_ok}, {"aciklama": "Doğruluk", "deger": f"%{acc*100:.2f}"}]
-    })
+    cm_b64 = base64.b64encode(buf.getvalue()).decode()
+    
+    # --- SONUCU HAZIRLA VE KAYDET ---
+    result_data = {
+        "cm": cm_b64,
+        "summary": [
+            {"aciklama": "Test Sayısı", "deger": read_ok}, 
+            {"aciklama": "Doğruluk", "deger": f"%{acc*100:.2f}"}
+        ],
+        "report": report_list
+    }
+    
+    # Sonuçları JSON dosyasına yaz
+    try:
+        with open(ANALYSIS_FILE, "w", encoding="utf-8") as f:
+            json.dump(result_data, f, ensure_ascii=False)
+    except Exception as e:
+        print(f"Kayıt hatası: {e}")
+
+    return jsonify(result_data)
+
+@app.route("/load_last_analysis")
+def load_last_analysis():
+    """
+    Daha önce yapılmış ve kaydedilmiş analizi diskten okur.
+    Yeniden hesaplama yapmaz, çok hızlıdır.
+    """
+    if not os.path.exists(ANALYSIS_FILE):
+        return jsonify({"error": "Kayıtlı analiz bulunamadı. Önce 'Tam Analizi Başlat' butonuna basın."})
+    
+    try:
+        with open(ANALYSIS_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": f"Dosya okunamadı: {e}"})
 
 # ============================================================
 # PROGRAM BAŞLANGIÇ NOKTASI
