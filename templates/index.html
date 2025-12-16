@@ -34,9 +34,30 @@
     #logsBox { background: rgba(0, 0, 0, 0.75); color: #8aff8a; padding: 20px; font-family: 'Courier New', monospace; border-radius: 12px; margin-top: 20px; max-height: 250px; overflow-y: auto; display: none; border: 1px solid rgba(255,255,255,0.1); font-size: 13px; }
     input[type="number"] { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 12px; border-radius: 8px; font-weight: bold; width: 60px; text-align: center; }
     input[type="file"] { display: block; width: 100%; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px; color: #fff; border: 1px dashed rgba(255,255,255,0.4); cursor: pointer; }
-    #summaryTable { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 15px; }
-    #summaryTable th { background: rgba(0,0,0,0.5); padding: 12px; color: #ffe35c; }
-    #summaryTable td { background: rgba(0,0,0,0.2); padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center; }
+    
+    /* GENEL TABLO STİLLERİ */
+    table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 15px; }
+    th { background: rgba(0,0,0,0.5); padding: 12px; color: #ffe35c; text-align: left; }
+    td { background: rgba(0,0,0,0.2); padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; font-size: 14px; }
+    
+    /* [YENİ] DETAYLI RAPOR TABLOSU İÇİN ÖZEL STİLLER */
+    #reportTableContainer {
+        max-height: 400px; /* Çok uzun olmasın, scroll olsun */
+        overflow-y: auto;
+        margin-top: 20px;
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 8px;
+        background: rgba(0,0,0,0.2);
+    }
+    #reportTable th { position: sticky; top: 0; background: #222; z-index: 10; text-align: center; }
+    #reportTable td { text-align: center; }
+    #reportTable td:nth-child(2) { text-align: left; min-width: 150px; } /* Sınıf Adı Sola Dayalı */
+
+    /* Scrollbar Özelleştirme */
+    #reportTableContainer::-webkit-scrollbar { width: 8px; }
+    #reportTableContainer::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); }
+    #reportTableContainer::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
+
     .loader { width: 24px; height: 24px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); border-top-color: #ffe35c; animation: spin 1s linear infinite; }
     .panelSpinner { display: none; margin-left: 10px; }
     .badge-ok { background: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 11px; }
@@ -56,16 +77,40 @@
     </header>
 
     <div class="control-panel">
-        <button id="startBtn" onclick="startTraining()">
-            <span class="material-icons">play_circle</span> Eğitimi Başlat
-        </button>
-        <button id="stopBtn" onclick="stopTraining()" disabled>
-            <span class="material-icons">stop_circle</span> Eğitimi Durdur
-        </button>
-        <button onclick="toggleLogs()">
-            <span class="material-icons">terminal</span> Log Kayıtları
-        </button>
+    <button onclick="toggleTrainingPanel()" style="padding: 12px 20px; font-size: 16px; font-weight: bold; cursor: pointer;">
+        <span class="material-icons" style="vertical-align:middle; margin-right:5px;">school</span>
+        Eğitim Paneli
+    </button>
     </div>
+
+    <div id="trainingPanelContainer" class="glass-card" style="display: none; ">
+    
+        <div class="control-panel">
+            <button id="startBtn" onclick="startTraining()">
+                <span class="material-icons">play_circle</span> Eğitimi Başlat
+            </button>
+            <button id="stopBtn" onclick="stopTraining()" disabled>
+                <span class="material-icons">stop_circle</span> Eğitimi Durdur
+            </button>
+            <button onclick="toggleLogs()">
+                <span class="material-icons">terminal</span> Log Kayıtları
+            </button>
+        </div>
+
+        <div id="progressBarContainer">
+            <div id="progressBar">% 0</div>
+        </div>
+        
+        <div style="text-align:center; margin-top:15px; margin-bottom: 15px;">
+            <span id="statusText" class="text-bg">
+                <span class="material-icons" style="vertical-align:middle; font-size:18px; margin-right:5px;">info</span>
+                Durum: Bekleniyor...
+            </span>
+        </div>
+
+        <div id="logsBox"></div>
+    </div>
+
 
     <div class="control-panel">
         <button onclick="toggleUploadPanel()">
@@ -91,43 +136,44 @@
         </button>
     </div>
 
-    <div id="progressBarContainer">
-        <div id="progressBar">% 0</div>
-    </div>
     
-    <div style="text-align:center; margin-top:15px;">
-        <span id="statusText" class="text-bg">
-            <span class="material-icons" style="vertical-align:middle; font-size:18px; margin-right:5px;">info</span>
-            Durum: Bekleniyor...
-        </span>
-    </div>
 
-    <div id="logsBox"></div>
+    
 
     <div id="testPanel" class="glass-card">
-        <h3><span class="material-icons">shuffle</span> Rastgele Tek Test Örneği</h3>
-        <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
-            <button onclick="runTestSample(this)" style="padding:10px 15px; font-size:14px;">
-                <span class="material-icons" style="font-size:18px;">refresh</span> Yeni Örnek
-            </button>
-            <div class="panelSpinner"><div class="loader"></div></div>
-        </div>
-        <div id="testPanelContent" style="display:none; justify-content:center; flex-wrap:wrap; gap:30px;">
-            <div class="imgBox">
-                <div style="font-size:12px; color:white; background:rgba(0,0,0,0.3); padding:3px 8px; border-radius:4px; display:inline-block; margin-bottom:5px;">TEST GÖRSELİ</div><br>
-                <img id="testImg" src="">
-                <div id="trueLabel" class="text-bg" style="margin-top:10px; font-weight:600; font-size:14px;"></div>
-            </div>
-            <div style="display:flex; align-items:center;">
-                <span class="material-icons" style="font-size:40px; color:white; text-shadow:0 2px 10px rgba(0,0,0,0.5);">arrow_forward</span>
-            </div>
-            <div class="imgBox">
-                <div style="font-size:12px; color:white; background:rgba(0,0,0,0.3); padding:3px 8px; border-radius:4px; display:inline-block; margin-bottom:5px;">TAHMİN</div><br>
-                <img id="metaImg" src="">
-                <div id="predLabel" class="text-bg" style="margin-top:10px; font-weight:600; font-size:14px; max-width: 220px;"></div>
-            </div>
-        </div>
+    <h3><span class="material-icons">shuffle</span> Rastgele Tek Test Örneği</h3>
+    
+    <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
+        <button onclick="runTestSample(this)" style="padding:10px 15px; font-size:14px;">
+            <span class="material-icons" style="font-size:18px;">refresh</span> Yeni Örnek
+        </button>
+        <div class="panelSpinner"><div class="loader"></div></div>
     </div>
+
+    <div id="testPanelContent" style="display:none; justify-content:center; flex-wrap:wrap; gap:30px;">
+        
+        <div class="imgBox" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
+            <div style="font-size:12px; color:white; background:rgba(0,0,0,0.3); padding:3px 8px; border-radius:4px; margin-bottom:10px;">
+                TEST GÖRSELİ
+            </div>
+            <img id="testImg" src="" style="max-height: 128px; width: auto; object-fit: contain;">
+            <div id="trueLabel" class="text-bg" style="margin-top:10px; font-weight:600; font-size:14px;"></div>
+        </div>
+
+        <div style="display:flex; align-items:center;">
+            <span class="material-icons" style="font-size:40px; color:white; text-shadow:0 2px 10px rgba(0,0,0,0.5);">arrow_forward</span>
+        </div>
+
+        <div class="imgBox" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
+            <div style="font-size:12px; color:white; background:rgba(0,0,0,0.3); padding:3px 8px; border-radius:4px; margin-bottom:10px;">
+                TAHMİN
+            </div>
+            <img id="metaImg" src="" style="max-height: 128px; width: auto; object-fit: contain;">
+            <div id="predLabel" class="text-bg" style="margin-top:10px; font-weight:600; font-size:14px; max-width: 220px;"></div>
+        </div>
+
+    </div>
+</div>
 
     <div id="uploadBox" class="glass-card">
         <h3><span class="material-icons">cloud_upload</span> Görsel Yükleyerek Test</h3>
@@ -201,21 +247,48 @@
     </div>
 
     <div id="fullTestBox" class="glass-card">
-        <h3><span class="material-icons">fact_check</span> Tam Test Seti Analizi</h3>
+        <h3><span class="material-icons">fact_check</span> Tam Test Seti Analizi ve Sınıf Raporu</h3>
+        <p style="font-size:14px; opacity:0.8; margin-bottom:20px;">Tüm test verisi (12.000+ örnek) taranır. Bu işlem birkaç saniye sürebilir.</p>
+        
         <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
-            <button onclick="loadFullTestAnalysis(this)" style="padding:10px 15px; font-size:14px;">
-                <span class="material-icons" style="font-size:18px;">play_arrow</span> Başlat
+            <button onclick="loadFullTestAnalysis(this)" style="padding:10px 20px; font-size:14px;">
+                <span class="material-icons" style="font-size:18px;">play_arrow</span> Analizi Başlat
+            </button>
+
+            <button onclick="loadLastAnalysis(this)" class="btn-secondary" style="padding:10px 20px; font-size:14px;">
+                <span class="material-icons" style="font-size:18px;">folder_open</span> Mevcut Analizi Yükle (Hızlı)
             </button>
             <div class="panelSpinner"><div class="loader"></div></div>
         </div>
-        <table id="summaryTable" style="display:none;">
-            <thead><tr><th>Metrik / Açıklama</th><th>Değer</th></tr></thead>
-            <tbody></tbody>
-        </table>
-        <div style="margin-top:25px;">
-            <h4 class="text-bg">Tam Confusion Matrix</h4>
-            <br>
-            <img id="fullCmImg" src="" class="chart-img" style="display:none;">
+
+        <div id="analysisContent" style="display:none;">
+            <table id="summaryTable" style="margin-bottom:25px;">
+                <thead><tr><th>Metrik / Açıklama</th><th>Değer</th></tr></thead>
+                <tbody></tbody>
+            </table>
+
+            <h4 class="text-bg"><span class="material-icons" style="vertical-align:middle;">table_chart</span> Sınıf Bazlı Performans Raporu</h4>
+            <div id="reportTableContainer">
+                <table id="reportTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Sınıf Adı</th>
+                            <th>Precision</th>
+                            <th>Recall</th>
+                            <th>F1-Score</th>
+                            <th>Destek (Adet)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top:35px;">
+                <h4 class="text-bg"><span class="material-icons" style="vertical-align:middle;">gradient</span> Genel Confusion Matrix</h4>
+                <img id="fullCmImg" src="" class="chart-img">
+            </div>
         </div>
     </div>
 </div>
@@ -236,6 +309,19 @@ function stopTraining() {
     document.getElementById("stopBtn").disabled = true;
     document.getElementById("startBtn").disabled = false;
 }
+
+function toggleTrainingPanel() {
+    var panel = document.getElementById("trainingPanelContainer");
+    
+    // Eğer panel kapalıysa (none), görünür yap (block)
+    if (panel.style.display === "none") {
+        panel.style.display = "block";
+    } else {
+        // Açıksa gizle
+        panel.style.display = "none";
+    }
+}
+
 function toggleLogs() {
     showLogs = !showLogs;
     document.getElementById("logsBox").style.display = showLogs ? "block" : "none";
@@ -280,7 +366,6 @@ function toggleLearningPanel() {
     box.style.display = (box.style.display === "block") ? "none" : "block";
 }
 
-// --- GÜNCELLENEN RASTGELE TEST ---
 function runTestSample(button) {
     const content = document.getElementById("testPanelContent");
     showPanelSpinner(button);
@@ -291,9 +376,7 @@ function runTestSample(button) {
             document.getElementById("testImg").src = "data:image/png;base64," + data.test_img;
             document.getElementById("metaImg").src = "data:image/png;base64," + data.meta_img;
             document.getElementById("trueLabel").innerHTML = "Sınıf ID: " + data.true_label;
-            
             const pred = document.getElementById("predLabel");
-            // ARTIK İSİM DE YAZILIYOR
             if(data.prediction === data.true_label) {
                 pred.innerHTML = `<span style="color:#6affae;">${data.prediction} - ${data.prediction_text} ✓</span>`;
             } else {
@@ -304,13 +387,11 @@ function runTestSample(button) {
         .catch(err => { console.error(err); hidePanelSpinner(button); });
 }
 
-// --- GÜNCELLENEN UPLOAD TEST ---
 function sendImage(button) {
     const input = document.getElementById("uploadImage");
     const resultBox = document.getElementById("uploadResult");
     const resultImg = document.getElementById("uploadImgShow");
     const resultPred = document.getElementById("uploadPredLabel");
-    
     if (!input.files || input.files.length === 0) {
         alert("Lütfen önce bir görsel seçin.");
         return;
@@ -319,28 +400,18 @@ function sendImage(button) {
     resultBox.style.display = "none";
     let formData = new FormData();
     formData.append("image", input.files[0]);
-
-    fetch("/predict_upload", {
-        method: "POST",
-        body: formData
-    })
+    fetch("/predict_upload", { method: "POST", body: formData })
     .then(r => r.json())
     .then(data => {
-        if (data.error) {
-            alert("Hata: " + data.error);
-        } else {
+        if (data.error) alert("Hata: " + data.error);
+        else {
             resultBox.style.display = "block";
             resultImg.src = "data:image/png;base64," + data.test_img; 
-            // ARTIK İSİM DE YAZILIYOR
             resultPred.innerText = data.prediction + " - " + data.prediction_text;
         }
         hidePanelSpinner(button);
     })
-    .catch(err => {
-        console.error(err);
-        alert("Sunucuya bağlanırken hata oluştu.");
-        hidePanelSpinner(button);
-    });
+    .catch(err => { console.error(err); alert("Hata oluştu."); hidePanelSpinner(button); });
 }
 
 function showSampleGrid(button) {
@@ -359,29 +430,15 @@ function showSampleGrid(button) {
                 card.className = "grid-card"; 
                 if(item.prediction === item.true_label) card.style.border = "3px solid #10b981";
                 else card.style.border = "3px solid #ef4444";
-                
-                // Tooltip olarak detaylı isim
                 card.title = `Tahmin: ${item.prediction} - ${item.prediction_text}`;
-
                 let img = document.createElement("img");
                 img.src = "data:image/png;base64," + item.test_img;
-                img.style.width = "100%";
-                img.style.height = "70px";
-                img.style.objectFit = "cover";
-                img.style.borderRadius = "4px";
-
+                img.style.width = "100%"; img.style.height = "70px"; img.style.objectFit = "cover"; img.style.borderRadius = "4px";
                 let lbl = document.createElement("div");
-                lbl.style.fontSize = "10px";
-                lbl.style.marginTop = "3px";
-                lbl.style.fontWeight = "bold";
-                if(item.prediction === item.true_label) {
-                    lbl.innerHTML = `<span class="badge-ok">${item.true_label}</span>`;
-                } else {
-                    lbl.innerHTML = `<span class="badge-wrong">${item.true_label} → ${item.prediction}</span>`;
-                }
-                card.appendChild(img);
-                card.appendChild(lbl);
-                grid.appendChild(card);
+                lbl.style.fontSize = "10px"; lbl.style.marginTop = "3px"; lbl.style.fontWeight = "bold";
+                if(item.prediction === item.true_label) lbl.innerHTML = `<span class="badge-ok">${item.true_label}</span>`;
+                else lbl.innerHTML = `<span class="badge-wrong">${item.true_label} → ${item.prediction}</span>`;
+                card.appendChild(img); card.appendChild(lbl); grid.appendChild(card);
             });
             hidePanelSpinner(button);
             grid.style.display = "grid";
@@ -394,8 +451,7 @@ function loadConfusionMatrix(button) {
     document.getElementById("cmTitle").innerHTML = `<span class="material-icons">analytics</span> Confusion Matrix (${numSamples} Örnek)`;
     showPanelSpinner(button);
     fetch(`/confusion_samples/${numSamples}`)
-        .then(r => r.json())
-        .then(data => {
+        .then(r => r.json()).then(data => {
             document.getElementById("cmImg").src = "data:image/png;base64," + data.img;
             hidePanelSpinner(button);
         })
@@ -404,47 +460,48 @@ function loadConfusionMatrix(button) {
 
 function loadRocCurve(button) {
     showPanelSpinner(button);
-    fetch("/roc_plot")
-        .then(r => r.json())
-        .then(data => {
-            if(data.error) alert(data.error);
-            else {
-                const img = document.getElementById("rocImg");
-                img.src = "data:image/png;base64," + data.img;
-                img.style.display = "block";
-            }
-            hidePanelSpinner(button);
-        })
-        .catch(err => { console.error(err); hidePanelSpinner(button); });
+    fetch("/roc_plot").then(r => r.json()).then(data => {
+        if(data.error) alert(data.error); else {
+            const img = document.getElementById("rocImg");
+            img.src = "data:image/png;base64," + data.img;
+            img.style.display = "block";
+        }
+        hidePanelSpinner(button);
+    }).catch(err => { console.error(err); hidePanelSpinner(button); });
 }
 
 function loadLearningCurve(button) {
     showPanelSpinner(button);
-    fetch("/learning_curve_plot")
-        .then(r => r.json())
-        .then(data => {
-            if(data.error) alert(data.error);
-            else {
-                const img = document.getElementById("learningImg");
-                img.src = "data:image/png;base64," + data.img;
-                img.style.display = "block";
-            }
-            hidePanelSpinner(button);
-        })
-        .catch(err => { console.error(err); hidePanelSpinner(button); });
+    fetch("/learning_curve_plot").then(r => r.json()).then(data => {
+        if(data.error) alert(data.error); else {
+            const img = document.getElementById("learningImg");
+            img.src = "data:image/png;base64," + data.img;
+            img.style.display = "block";
+        }
+        hidePanelSpinner(button);
+    }).catch(err => { console.error(err); hidePanelSpinner(button); });
 }
 
+// --- GÜNCELLENEN TAM TEST ANALİZİ FONKSİYONU ---
 function loadFullTestAnalysis(button) {
     const spinner = button.parentElement.querySelector(".panelSpinner");
     if (spinner) spinner.style.display = "flex";
     button.disabled = true;
-    document.getElementById("summaryTable").style.display = "none";
-    document.getElementById("fullCmImg").style.display = "none";
+    document.getElementById("analysisContent").style.display = "none";
+
     fetch("/full_test_analysis")
         .then(r => r.json())
         .then(data => {
-            const tbody = document.querySelector("#summaryTable tbody");
-            tbody.innerHTML = "";
+            if(data.error) {
+                alert(data.error);
+                if (spinner) spinner.style.display = "none";
+                button.disabled = false;
+                return;
+            }
+
+            // 1. Özet Tabloyu Doldur (Eski Kısım)
+            const tbodySummary = document.querySelector("#summaryTable tbody");
+            tbodySummary.innerHTML = "";
             data.summary.forEach(row => {
                 let tr = document.createElement("tr");
                 let valColor = "white"; 
@@ -454,16 +511,129 @@ function loadFullTestAnalysis(button) {
                      else valColor = "#ff6b6b"; 
                 }
                 tr.innerHTML = `<td>${row.aciklama}</td><td style="color:${valColor}; font-weight:bold; font-size:16px;">${row.deger}</td>`;
-                tbody.appendChild(tr);
+                tbodySummary.appendChild(tr);
             });
+
+            // 2. [YENİ] Detaylı Rapor Tablosunu Doldur
+            const tbodyReport = document.querySelector("#reportTable tbody");
+            tbodyReport.innerHTML = "";
+            if (data.report) {
+                data.report.forEach(item => {
+                    let tr = document.createElement("tr");
+                    // F1 skoru düşükse satırı hafif kırmızı yap
+                    let f1Val = parseFloat(item.f1);
+                    let rowBg = "";
+                    if(f1Val < 0.6) rowBg = "rgba(255, 0, 0, 0.15)";
+                    
+                    tr.style.background = rowBg;
+                    tr.innerHTML = `
+                        <td style="font-weight:bold; opacity:0.8;">${item.id}</td>
+                        <td style="text-align:left;">${item.name}</td>
+                        <td>${item.precision}</td>
+                        <td>${item.recall}</td>
+                        <td style="color:${f1Val > 0.8 ? '#6affae' : (f1Val < 0.6 ? '#ff6b6b' : 'white')}; font-weight:bold;">${item.f1}</td>
+                        <td>${item.support}</td>
+                    `;
+                    tbodyReport.appendChild(tr);
+                });
+            }
+
+            // 3. Görselleri Ayarla
             document.getElementById("fullCmImg").src = "data:image/png;base64," + data.cm;
-            document.getElementById("summaryTable").style.display = "table";
-            document.getElementById("fullCmImg").style.display = "block";
+            document.getElementById("analysisContent").style.display = "block";
+            
             if (spinner) spinner.style.display = "none";
             button.disabled = false;
         })
         .catch(err => { console.error(err); if (spinner) spinner.style.display = "none"; button.disabled = false; });
 }
+
+
+// --- MEVCUT ANALİZİ YÜKLEME FONKSİYONU ---
+function loadLastAnalysis(button) {
+    // 1. Spinner ve Buton Kontrolü (Görsel Hazırlık)
+    // Not: HTML tarafında bu butonun yanına da "panelSpinner" sınıfına sahip bir div koyduğunuzu varsayıyoruz.
+    const spinner = button.parentElement.querySelector(".panelSpinner");
+    if (spinner) spinner.style.display = "flex";
+    
+    button.disabled = true; // Çift tıklamayı önle
+    document.getElementById("analysisContent").style.display = "none"; // İçeriği temizle/gizle
+
+    // 2. Python'dan Kayıtlı Veriyi İste
+    fetch("/load_last_analysis")
+        .then(r => r.json())
+        .then(data => {
+            // Hata Kontrolü
+            if(data.error) {
+                alert(data.error);
+                if (spinner) spinner.style.display = "none";
+                button.disabled = false;
+                return;
+            }
+
+            // -------------------------------------------------------
+            // AŞAĞIDAKİ KISIM loadFullTestAnalysis İLE AYNIDIR
+            // AMACIMIZ GÖRÜNTÜNÜN BİREBİR AYNI OLMASI
+            // -------------------------------------------------------
+
+            // A. Özet Tabloyu Doldur
+            const tbodySummary = document.querySelector("#summaryTable tbody");
+            tbodySummary.innerHTML = "";
+            data.summary.forEach(row => {
+                let tr = document.createElement("tr");
+                let valColor = "white"; 
+                // Renklendirme mantığı
+                if (row.aciklama.toLowerCase().includes("doğruluk") || row.aciklama.toLowerCase().includes("accuracy")) {
+                     if (row.deger.includes("9") || row.deger.includes("100")) valColor = "#6affae"; 
+                     else if (row.deger.includes("8")) valColor = "#ffe35c";
+                     else valColor = "#ff6b6b"; 
+                }
+                tr.innerHTML = `<td>${row.aciklama}</td><td style="color:${valColor}; font-weight:bold; font-size:16px;">${row.deger}</td>`;
+                tbodySummary.appendChild(tr);
+            });
+
+            // B. Detaylı Rapor Tablosunu Doldur
+            const tbodyReport = document.querySelector("#reportTable tbody");
+            tbodyReport.innerHTML = "";
+            if (data.report) {
+                data.report.forEach(item => {
+                    let tr = document.createElement("tr");
+                    
+                    // F1 skoru düşükse satırı hafif kırmızı yap
+                    let f1Val = parseFloat(item.f1);
+                    let rowBg = "";
+                    if(f1Val < 0.6) rowBg = "rgba(255, 0, 0, 0.15)";
+                    
+                    tr.style.background = rowBg;
+                    tr.innerHTML = `
+                        <td style="font-weight:bold; opacity:0.8;">${item.id}</td>
+                        <td style="text-align:left;">${item.name}</td>
+                        <td>${item.precision}</td>
+                        <td>${item.recall}</td>
+                        <td style="color:${f1Val > 0.8 ? '#6affae' : (f1Val < 0.6 ? '#ff6b6b' : 'white')}; font-weight:bold;">${item.f1}</td>
+                        <td>${item.support}</td>
+                    `;
+                    tbodyReport.appendChild(tr);
+                });
+            }
+
+            // C. Görseli (Confusion Matrix) Yerleştir
+            document.getElementById("fullCmImg").src = "data:image/png;base64," + data.cm;
+            
+            // D. Paneli Göster ve İşlemi Bitir
+            document.getElementById("analysisContent").style.display = "block";
+            
+            if (spinner) spinner.style.display = "none";
+            button.disabled = false;
+        })
+        .catch(err => { 
+            console.error("Yükleme Hatası:", err); 
+            alert("Analiz yüklenirken bir sorun oluştu.");
+            if (spinner) spinner.style.display = "none"; 
+            button.disabled = false; 
+        });
+}
+
 
 function updateProgress() {
     fetch("/progress").then(r => r.json()).then(data => {
