@@ -226,7 +226,19 @@ def train_model():
     # Random Forest Sınıflandırıcısını tanımla
     # n_estimators=100: 100 adet karar ağacı kullanılacak.
     # n_jobs=-1: Bilgisayarın tüm işlemci çekirdeklerini kullan (Hızlandırır).
-    rf = RandomForestClassifier(n_estimators=100, n_jobs=-1, random_state=42)
+    # ---------------------------------------------------------
+    rf = RandomForestClassifier(
+        n_estimators=100,       # Ağaç sayısı
+        max_depth=12,           # Ağaç derinliği (Overfitting engeller)
+        min_samples_split=10,   # Bölünme için min örnek (Daha genel kurallar)
+        min_samples_leaf=4,     # Yaprakta min örnek (Gürültüyü azaltır)
+        max_features='sqrt',    # Her bölünmede bakılacak özellik karekökü
+        bootstrap=True,         # Bootstrap örnekleme açık
+        n_jobs=-1,              # Tüm çekirdekleri kullan
+        random_state=42,        # Tekrarlanabilirlik
+        verbose=0               # Konsol kirliliğini önle
+    )
+    # ---------------------------------------------------------
     
     # Modeli eğitim verisiyle eğit (Fit işlemi)
     rf.fit(X_train, y_train)
