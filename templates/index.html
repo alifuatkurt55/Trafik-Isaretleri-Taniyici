@@ -9,51 +9,136 @@
 <style>
     body { margin: 0; padding: 0; font-family: "Inter", sans-serif; background: linear-gradient(135deg, #f65151, #5889f4, #66fa66); background-size: 400% 400%; animation: gradientMove 15s ease infinite; color: #fff; min-height: 100vh; }
     @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-    .container { max-width: 1000px; margin: 40px auto; padding: 0 20px 50px 20px; }
+    
+    /* Genişlik ayarı korundu */
+    .container { max-width: 1100px; margin: 40px auto; padding: 0 20px 50px 20px; }
+    
     .text-bg { background: rgba(0, 0, 0, 0.25); padding: 5px 12px; border-radius: 8px; display: inline-block; backdrop-filter: blur(4px); }
+    
     header { text-align: center; margin-bottom: 40px; }
     header h1 { font-size: 38px; font-weight: 800; margin: 0 0 10px 0; display: inline-flex; align-items: center; gap: 15px; background: rgba(0, 0, 0, 0.3); padding: 15px 30px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
     header h1 .material-icons { font-size: 42px; color: #ffe35c; }
-    .control-panel { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 15px; margin-bottom: 30px; }
-    button { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 20px; background: linear-gradient(135deg, #ffe35c, #ffae00); color: #222; border: none; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.2); font-family: 'Inter', sans-serif; }
-    button:hover:not(:disabled) { transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 25px rgba(0,0,0,0.3); background: linear-gradient(135deg, #fff0a4, #ffb82b); }
-    button:disabled { background: rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.5); cursor: not-allowed; box-shadow: none; }
+
+    .panel-group { margin-bottom: 15px; } 
+    
+    /* Ana Butonlar */
+    .main-toggle { 
+        width: 100%; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 10px; 
+        padding: 18px 20px; 
+        background: linear-gradient(135deg, #ffe35c, #ffae00); 
+        color: #222; 
+        border: none; 
+        border-radius: 12px; 
+        font-weight: 800; 
+        font-size: 17px;
+        cursor: pointer; 
+        transition: transform 0.2s, box-shadow 0.2s; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+        font-family: 'Inter', sans-serif; 
+        position: relative;
+        z-index: 2;
+    }
+    .main-toggle:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); background: linear-gradient(135deg, #fff0a4, #ffb82b); }
+    
+    .sub-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; background: linear-gradient(135deg, #ffe35c, #ffae00); color: #222; border: none; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.2); font-family: 'Inter', sans-serif; }
+    .sub-btn:hover:not(:disabled) { transform: translateY(-3px) scale(1.02); }
+    .sub-btn:disabled { background: rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.5); cursor: not-allowed; box-shadow: none; }
+    
     #stopBtn:not(:disabled) { background: linear-gradient(135deg, #ff9a9e, #ff6b6b); color: white; }
     #stopBtn:not(:disabled) .material-icons { color: white; }
-    .glass-card { background: rgba(0, 0, 0, 0.25); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); padding: 25px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2); display: none; color: white; animation: fadeIn 0.4s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .glass-card h3 { margin-top: 0; font-size: 22px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-    .imgBox { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); padding: 15px; border-radius: 14px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.2); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); min-width: 180px; }
+
+    /* Glass Card (Panel İçeriği) */
+    .glass-card { 
+        background: rgba(0, 0, 0, 0.25); 
+        backdrop-filter: blur(15px); 
+        -webkit-backdrop-filter: blur(15px); 
+        border: 1px solid rgba(255, 255, 255, 0.2); 
+        padding: 30px;
+        border-radius: 0 0 16px 16px; 
+        margin-top: -10px; 
+        padding-top: 30px;
+        margin-bottom: 10px; 
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2); 
+        display: none; 
+        color: white; 
+        /* Açılış animasyonu: Uzama efekti */
+        animation: stretchDown 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+        /* Dönüşümün başlayacağı nokta: Üst orta */
+        transform-origin: top center;
+    }
+
+    /* Kapanış Animasyonu Sınıfı */
+    .glass-card.closing {
+        /* Kapanış animasyonu: Yukarı doğru büzülme */
+        animation: stretchUp 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+    }
+
+    /* YENİ KEYFRAME'LER: Dikey Uzama */
+    @keyframes stretchDown {
+        0% {
+            opacity: 0;
+            transform: scaleY(0); /* Dikey olarak tamamen ezilmiş */
+        }
+        100% {
+            opacity: 1;
+            transform: scaleY(1); /* Tam boyut */
+        }
+    }
+
+    @keyframes stretchUp {
+        0% {
+            opacity: 1;
+            transform: scaleY(1);
+        }
+        100% {
+            opacity: 0;
+            transform: scaleY(0); /* Yukarıya doğru ezilerek kaybol */
+        }
+    }
+    /* Animasyon Keyframe'leri */
+    @keyframes slideDown { 
+        from { opacity: 0; transform: translateY(-20px) scale(0.98); } 
+        to { opacity: 1; transform: translateY(0) scale(1); } 
+    }
+
+    @keyframes slideUp { 
+        from { opacity: 1; transform: translateY(0) scale(1); } 
+        to { opacity: 0; transform: translateY(-20px) scale(0.98); } 
+    }
+    
+    .panel-group.active .main-toggle { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+
+    .glass-card h3 { margin-top: 0; font-size: 24px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+    
+    .imgBox { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); padding: 20px; border-radius: 14px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.2); transition: transform 0.3s; min-width: 200px; }
     .imgBox:hover { transform: translateY(-8px) scale(1.03); background: rgba(255,255,255,0.25); }
-    .imgBox img { width: 160px; height: 160px; object-fit: cover; border-radius: 10px; border: 2px solid rgba(255,255,255,0.5); }
-    #sampleGrid { display: grid; gap: 15px; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); margin-top: 20px; }
+    .imgBox img { width: 180px; height: 180px; object-fit: cover; border-radius: 10px; border: 2px solid rgba(255,255,255,0.5); }
+    
+    #sampleGrid { display: grid; gap: 15px; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); margin-top: 20px; }
     .grid-card { background: rgba(255, 255, 255, 0.9); border-radius: 10px; padding: 8px; text-align: center; color: #333; transition: all 0.2s ease-out; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     .grid-card:hover { transform: scale(1.1) translateY(-5px); z-index: 10; }
+    
     #progressBarContainer { width: 100%; height: 26px; background: rgba(0,0,0,0.3); border-radius: 20px; overflow: hidden; margin-top: 20px; border: 1px solid rgba(255,255,255,0.2); }
     #progressBar { height: 100%; width: 0%; background: linear-gradient(90deg, #ffe35c, #ffae00); display: flex; align-items: center; justify-content: center; color: #222; font-weight: bold; font-size: 13px; transition: width 0.3s ease; }
+    
     #logsBox { background: rgba(0, 0, 0, 0.75); color: #8aff8a; padding: 20px; font-family: 'Courier New', monospace; border-radius: 12px; margin-top: 20px; max-height: 250px; overflow-y: auto; display: none; border: 1px solid rgba(255,255,255,0.1); font-size: 13px; }
-    input[type="number"] { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 12px; border-radius: 8px; font-weight: bold; width: 60px; text-align: center; }
-    input[type="file"] { display: block; width: 100%; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px; color: #fff; border: 1px dashed rgba(255,255,255,0.4); cursor: pointer; }
     
-    /* GENEL TABLO STİLLERİ */
+    input[type="number"] { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 12px; border-radius: 8px; font-weight: bold; width: 70px; text-align: center; font-size: 15px; }
+    input[type="file"] { display: block; width: 100%; padding: 12px; background: rgba(255,255,255,0.1); border-radius: 8px; color: #fff; border: 1px dashed rgba(255,255,255,0.4); cursor: pointer; }
+    
     table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 15px; }
-    th { background: rgba(0,0,0,0.5); padding: 12px; color: #ffe35c; text-align: left; }
-    td { background: rgba(0,0,0,0.2); padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; font-size: 14px; }
+    th { background: rgba(0,0,0,0.5); padding: 15px; color: #ffe35c; text-align: left; font-size: 15px; }
+    td { background: rgba(0,0,0,0.2); padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; font-size: 15px; }
     
-    /* [YENİ] DETAYLI RAPOR TABLOSU İÇİN ÖZEL STİLLER */
-    #reportTableContainer {
-        max-height: 400px; /* Çok uzun olmasın, scroll olsun */
-        overflow-y: auto;
-        margin-top: 20px;
-        border: 1px solid rgba(255,255,255,0.2);
-        border-radius: 8px;
-        background: rgba(0,0,0,0.2);
-    }
+    #reportTableContainer { max-height: 500px; overflow-y: auto; margin-top: 20px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; background: rgba(0,0,0,0.2); }
     #reportTable th { position: sticky; top: 0; background: #222; z-index: 10; text-align: center; }
     #reportTable td { text-align: center; }
-    #reportTable td:nth-child(2) { text-align: left; min-width: 150px; } /* Sınıf Adı Sola Dayalı */
-
-    /* Scrollbar Özelleştirme */
+    #reportTable td:nth-child(2) { text-align: left; min-width: 150px; }
+    
     #reportTableContainer::-webkit-scrollbar { width: 8px; }
     #reportTableContainer::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); }
     #reportTableContainer::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
@@ -63,7 +148,8 @@
     .badge-ok { background: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 11px; }
     .badge-wrong { background: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 11px; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    .chart-img { width: 100%; max-width: 700px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.4); box-shadow: 0 5px 15px rgba(0,0,0,0.2); display: block; margin: 20px auto; }
+    
+    .chart-img { width: 100%; max-width: 850px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.4); box-shadow: 0 5px 15px rgba(0,0,0,0.2); display: block; margin: 20px auto; }
 </style>
 </head>
 <body>
@@ -76,228 +162,252 @@
         </div>
     </header>
 
-    <div class="control-panel">
-    <button onclick="toggleTrainingPanel()" style="padding: 12px 20px; font-size: 16px; font-weight: bold; cursor: pointer;">
-        <span class="material-icons" style="vertical-align:middle; margin-right:5px;">school</span>
-        Eğitim Paneli
-    </button>
-    </div>
-
-    <div id="trainingPanelContainer" class="glass-card" style="display: none; ">
-    
-        <div class="control-panel">
-            <button id="startBtn" onclick="startTraining()">
-                <span class="material-icons">play_circle</span> Eğitimi Başlat
-            </button>
-            <button id="stopBtn" onclick="stopTraining()" disabled>
-                <span class="material-icons">stop_circle</span> Eğitimi Durdur
-            </button>
-            <button onclick="toggleLogs()">
-                <span class="material-icons">terminal</span> Log Kayıtları
-            </button>
-        </div>
-
-        <div id="progressBarContainer">
-            <div id="progressBar">% 0</div>
-        </div>
-        
-        <div style="text-align:center; margin-top:15px; margin-bottom: 15px;">
-            <span id="statusText" class="text-bg">
-                <span class="material-icons" style="vertical-align:middle; font-size:18px; margin-right:5px;">info</span>
-                Durum: Bekleniyor...
-            </span>
-        </div>
-
-        <div id="logsBox"></div>
-    </div>
-
-
-    <div class="control-panel">
-        <button onclick="toggleUploadPanel()">
-            <span class="material-icons">cloud_upload</span> Yükle & Test
+    <div class="panel-group" id="group-training">
+        <button class="main-toggle" onclick="toggleGroup('group-training', 'trainingPanelContainer')">
+            <span class="material-icons">school</span> Model Eğitimi
         </button>
-        <button onclick="toggleTestPanel()">
-            <span class="material-icons">image_search</span> Tekli Test
-        </button>
-        <button onclick="toggleSampleGridPanel()">
-            <span class="material-icons">grid_view</span> Toplu Test
-        </button>
-        <button onclick="toggleConfusionPanel()">
-            <span class="material-icons">blur_on</span> Matris
-        </button>
-        <button onclick="toggleRocPanel()">
-            <span class="material-icons">show_chart</span> ROC Eğrisi
-        </button>
-        <button onclick="toggleLearningPanel()">
-            <span class="material-icons">timeline</span> Öğrenme Eğrisi
-        </button>
-        <button onclick="toggleFullTestBox()">
-            <span class="material-icons">assessment</span> Tam Analiz
-        </button>
-    </div>
-
-    
-
-    
-
-    <div id="testPanel" class="glass-card">
-    <h3><span class="material-icons">shuffle</span> Rastgele Tek Test Örneği</h3>
-    
-    <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
-        <button onclick="runTestSample(this)" style="padding:10px 15px; font-size:14px;">
-            <span class="material-icons" style="font-size:18px;">refresh</span> Yeni Örnek
-        </button>
-        <div class="panelSpinner"><div class="loader"></div></div>
-    </div>
-
-    <div id="testPanelContent" style="display:none; justify-content:center; flex-wrap:wrap; gap:30px;">
-        
-        <div class="imgBox" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
-            <div style="font-size:12px; color:white; background:rgba(0,0,0,0.3); padding:3px 8px; border-radius:4px; margin-bottom:10px;">
-                TEST GÖRSELİ
-            </div>
-            <img id="testImg" src="" style="max-height: 128px; width: auto; object-fit: contain;">
-            <div id="trueLabel" class="text-bg" style="margin-top:10px; font-weight:600; font-size:14px;"></div>
-        </div>
-
-        <div style="display:flex; align-items:center;">
-            <span class="material-icons" style="font-size:40px; color:white; text-shadow:0 2px 10px rgba(0,0,0,0.5);">arrow_forward</span>
-        </div>
-
-        <div class="imgBox" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
-            <div style="font-size:12px; color:white; background:rgba(0,0,0,0.3); padding:3px 8px; border-radius:4px; margin-bottom:10px;">
-                TAHMİN
-            </div>
-            <img id="metaImg" src="" style="max-height: 128px; width: auto; object-fit: contain;">
-            <div id="predLabel" class="text-bg" style="margin-top:10px; font-weight:600; font-size:14px; max-width: 220px;"></div>
-        </div>
-
-    </div>
-</div>
-
-    <div id="uploadBox" class="glass-card">
-        <h3><span class="material-icons">cloud_upload</span> Görsel Yükleyerek Test</h3>
-        <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
-            <div style="width:100%; max-width:400px; text-align:left;">
-                <label style="font-size:14px; margin-bottom:5px; display:block; font-weight:600;">Bir dosya seçin:</label>
-                <input type="file" id="uploadImage" accept="image/*">
-            </div>
-            <div style="display:flex; align-items:center; gap:10px;">
-                <button onclick="sendImage(this)" style="padding:10px 30px;">
-                    <span class="material-icons">send</span> Yükle ve Tahmin Et
+        <div id="trainingPanelContainer" class="glass-card">
+            <h3><span class="material-icons">settings</span> Eğitim Kontrolleri</h3>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 25px;">
+                <button id="startBtn" class="sub-btn" onclick="startTraining()">
+                    <span class="material-icons">play_circle</span> Eğitimi Başlat
                 </button>
-                <div class="panelSpinner" id="uploadSpinner"><div class="loader"></div></div>
+                <button id="stopBtn" class="sub-btn" onclick="stopTraining()" disabled>
+                    <span class="material-icons">stop_circle</span> Eğitimi Durdur
+                </button>
+                <button class="sub-btn" onclick="toggleLogs()">
+                    <span class="material-icons">terminal</span> Log Kayıtları
+                </button>
             </div>
+
+            <div id="progressBarContainer">
+                <div id="progressBar">% 0</div>
+            </div>
+            
+            <div style="text-align:center; margin-top:20px; margin-bottom: 15px;">
+                <span id="statusText" class="text-bg">
+                    <span class="material-icons" style="vertical-align:middle; font-size:18px; margin-right:5px;">info</span>
+                    Durum: Bekleniyor...
+                </span>
+            </div>
+
+            <div id="logsBox"></div>
         </div>
-        <div id="uploadResult" style="display:none; margin-top:30px; border-top:1px solid rgba(255,255,255,0.2); padding-top:20px;">
-            <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:30px;">
-                <div class="imgBox">
-                    <div style="font-size:12px; color:white; background:rgba(0,0,0,0.3); padding:3px 8px; border-radius:4px; display:inline-block; margin-bottom:5px;">YÜKLENEN GÖRSEL</div><br>
-                    <img id="uploadImgShow" src="">
+    </div>
+
+    <div class="panel-group" id="group-upload">
+        <button class="main-toggle" onclick="toggleGroup('group-upload', 'uploadBox')">
+            <span class="material-icons">cloud_upload</span> Görsel Yükle & Test Et
+        </button>
+        <div id="uploadBox" class="glass-card">
+            <h3><span class="material-icons">cloud_upload</span> Dosyadan Tahmin</h3>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:20px;">
+                <div style="width:100%; max-width:500px; text-align:left;">
+                    <label style="font-size:15px; margin-bottom:8px; display:block; font-weight:600;">Bir dosya seçin:</label>
+                    <input type="file" id="uploadImage" accept="image/*">
                 </div>
-                <div style="display:flex; align-items:center; flex-direction:column; justify-content:center;">
-                    <span class="material-icons" style="font-size:40px; color:white; margin-bottom:10px;">psychology</span>
-                    <div class="text-bg" style="text-align:center;">
-                        <span style="display:block; font-size:13px; opacity:0.8;">Model Tahmini</span>
-                        <span id="uploadPredLabel" style="font-size:20px; font-weight:800; color:#ffe35c; display:block; margin-top:5px;"></span>
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <button class="sub-btn" onclick="sendImage(this)" style="padding:12px 40px;">
+                        <span class="material-icons">send</span> Yükle ve Tahmin Et
+                    </button>
+                    <div class="panelSpinner" id="uploadSpinner"><div class="loader"></div></div>
+                </div>
+            </div>
+            <div id="uploadResult" style="display:none; margin-top:35px; border-top:1px solid rgba(255,255,255,0.2); padding-top:25px;">
+                <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:40px;">
+                    <div class="imgBox">
+                        <div style="font-size:13px; color:white; background:rgba(0,0,0,0.3); padding:4px 10px; border-radius:4px; display:inline-block; margin-bottom:8px;">YÜKLENEN GÖRSEL</div><br>
+                        <img id="uploadImgShow" src="">
+                    </div>
+                    <div style="display:flex; align-items:center; flex-direction:column; justify-content:center;">
+                        <span class="material-icons" style="font-size:50px; color:white; margin-bottom:15px;">psychology</span>
+                        <div class="text-bg" style="text-align:center; padding: 15px 25px;">
+                            <span style="display:block; font-size:14px; opacity:0.8;">Model Tahmini</span>
+                            <span id="uploadPredLabel" style="font-size:24px; font-weight:800; color:#ffe35c; display:block; margin-top:5px;"></span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="sampleGridBox" class="glass-card">
-        <h3 id="sampleGridBoxTitle"><span class="material-icons">view_comfy</span> Toplu Test Analizi</h3>
-        <div style="background:rgba(0,0,0,0.4); padding:10px; border-radius:10px; display:inline-flex; align-items:center; gap:10px; margin-bottom:15px;">
-            <span style="font-size:14px;">Örnek Sayısı:</span>
-            <input type="number" id="batchSampleInput" value="50" min="5" max="200">
-            <button onclick="showSampleGrid(this)" style="padding:6px 15px; font-size:13px;">Göster</button>
-            <div class="panelSpinner"><div class="loader"></div></div>
+    <div class="panel-group" id="group-test">
+        <button class="main-toggle" onclick="toggleGroup('group-test', 'testPanel')">
+            <span class="material-icons">image_search</span> Rastgele Tekli Test
+        </button>
+        <div id="testPanel" class="glass-card">
+            <h3><span class="material-icons">shuffle</span> Rastgele Tek Test Örneği</h3>
+            
+            <div style="display:flex; align-items:center; gap:20px; margin-bottom:25px;">
+                <button class="sub-btn" onclick="runTestSample(this)">
+                    <span class="material-icons" style="font-size:20px;">refresh</span> Yeni Örnek
+                </button>
+                <div class="panelSpinner"><div class="loader"></div></div>
+            </div>
+
+            <div id="testPanelContent" style="display:none; justify-content:center; flex-wrap:wrap; gap:50px;">
+                <div class="imgBox" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
+                    <div style="font-size:12px; color:white; background:rgba(0,0,0,0.3); padding:3px 8px; border-radius:4px; margin-bottom:10px;">TEST GÖRSELİ</div>
+                    <img id="testImg" src="" style="max-height: 150px; width: auto; object-fit: contain;">
+                    <div id="trueLabel" class="text-bg" style="margin-top:10px; font-weight:600; font-size:15px;"></div>
+                </div>
+
+                <div style="display:flex; align-items:center;">
+                    <span class="material-icons" style="font-size:50px; color:white; text-shadow:0 2px 10px rgba(0,0,0,0.5);">arrow_forward</span>
+                </div>
+
+                <div class="imgBox" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
+                    <div style="font-size:12px; color:white; background:rgba(0,0,0,0.3); padding:3px 8px; border-radius:4px; margin-bottom:10px;">TAHMİN</div>
+                    <img id="metaImg" src="" style="max-height: 150px; width: auto; object-fit: contain;">
+                    <div id="predLabel" class="text-bg" style="margin-top:10px; font-weight:600; font-size:15px; max-width: 250px;"></div>
+                </div>
+            </div>
         </div>
-        <div id="sampleGrid"></div>
     </div>
 
-    <div id="cmBox" class="glass-card">
-        <h3 id="cmTitle"><span class="material-icons">analytics</span> Confusion Matrix</h3>
-        <div style="background:rgba(0,0,0,0.4); padding:10px; border-radius:10px; display:inline-flex; align-items:center; gap:10px; margin-bottom:15px;">
-            <span style="font-size:14px;">Analiz Adedi:</span>
-            <input type="number" id="cmSampleInput" value="30" min="5" max="500">
-            <button onclick="loadConfusionMatrix(this)" style="padding:6px 15px; font-size:13px;">Oluştur</button>
-            <div class="panelSpinner"><div class="loader"></div></div>
+    <div class="panel-group" id="group-grid">
+        <button class="main-toggle" onclick="toggleGroup('group-grid', 'sampleGridBox')">
+            <span class="material-icons">grid_view</span> Toplu Test Analizi
+        </button>
+        <div id="sampleGridBox" class="glass-card">
+            <h3 id="sampleGridBoxTitle"><span class="material-icons">view_comfy</span> Toplu Test Grid</h3>
+            <div style="background:rgba(0,0,0,0.4); padding:12px 20px; border-radius:12px; display:inline-flex; align-items:center; gap:15px; margin-bottom:20px;">
+                <span style="font-size:15px;">Örnek Sayısı:</span>
+                <input type="number" id="batchSampleInput" value="50" min="5" max="200">
+                <button class="sub-btn" onclick="showSampleGrid(this)" style="padding:8px 20px; font-size:14px;">Göster</button>
+                <div class="panelSpinner"><div class="loader"></div></div>
+            </div>
+            <div id="sampleGrid"></div>
         </div>
-        <img id="cmImg" src="" class="chart-img">
     </div>
 
-    <div id="rocBox" class="glass-card">
-        <h3><span class="material-icons">show_chart</span> ROC Eğrisi (Micro-Average)</h3>
-        <div style="display:flex; align-items:center; gap:10px;">
-            <button onclick="loadRocCurve(this)" style="padding:10px 15px; font-size:14px;">Grafiği Yükle</button>
-            <div class="panelSpinner"><div class="loader"></div></div>
+    <div class="panel-group" id="group-cm">
+        <button class="main-toggle" onclick="toggleGroup('group-cm', 'cmBox')">
+            <span class="material-icons">blur_on</span> Confusion Matrix (Örneklem)
+        </button>
+        <div id="cmBox" class="glass-card">
+            <h3 id="cmTitle"><span class="material-icons">analytics</span> Confusion Matrix</h3>
+            <div style="background:rgba(0,0,0,0.4); padding:12px 20px; border-radius:12px; display:inline-flex; align-items:center; gap:15px; margin-bottom:20px;">
+                <span style="font-size:15px;">Örnek Sayısı:</span>
+                <input type="number" id="cmSampleInput" value="30" min="5" max="500">
+                <button class="sub-btn" onclick="loadConfusionMatrix(this)" style="padding:8px 20px; font-size:14px;">Oluştur</button>
+                <div class="panelSpinner"><div class="loader"></div></div>
+            </div>
+            <img id="cmImg" src="" class="chart-img">
         </div>
-        <img id="rocImg" src="" class="chart-img" style="display:none;">
     </div>
 
-    <div id="learningBox" class="glass-card">
-        <h3><span class="material-icons">timeline</span> Öğrenme Eğrisi (Learning Curve)</h3>
-        <div style="display:flex; align-items:center; gap:10px;">
-            <button onclick="loadLearningCurve(this)" style="padding:10px 15px; font-size:14px;">Grafiği Yükle</button>
-            <div class="panelSpinner"><div class="loader"></div></div>
+    <div class="panel-group" id="group-roc">
+        <button class="main-toggle" onclick="toggleGroup('group-roc', 'rocBox')">
+            <span class="material-icons">show_chart</span> ROC Eğrisi
+        </button>
+        <div id="rocBox" class="glass-card">
+            <h3><span class="material-icons">show_chart</span> ROC Eğrisi (Micro-Average)</h3>
+            <div style="display:flex; align-items:center; gap:15px;">
+                <button class="sub-btn" onclick="loadRocCurve(this)">Grafiği Yükle</button>
+                <div class="panelSpinner"><div class="loader"></div></div>
+            </div>
+            <img id="rocImg" src="" class="chart-img" style="display:none;">
         </div>
-        <img id="learningImg" src="" class="chart-img" style="display:none;">
     </div>
 
-    <div id="fullTestBox" class="glass-card">
-        <h3><span class="material-icons">fact_check</span> Tam Test Seti Analizi ve Sınıf Raporu</h3>
-        <p style="font-size:14px; opacity:0.8; margin-bottom:20px;">Tüm test verisi (12.000+ örnek) taranır. Bu işlem birkaç saniye sürebilir.</p>
-        
-        <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
-            <button onclick="loadFullTestAnalysis(this)" style="padding:10px 20px; font-size:14px;">
-                <span class="material-icons" style="font-size:18px;">play_arrow</span> Analizi Başlat
-            </button>
-
-            <button onclick="loadLastAnalysis(this)" class="btn-secondary" style="padding:10px 20px; font-size:14px;">
-                <span class="material-icons" style="font-size:18px;">folder_open</span> Mevcut Analizi Yükle (Hızlı)
-            </button>
-            <div class="panelSpinner"><div class="loader"></div></div>
+    <div class="panel-group" id="group-learn">
+        <button class="main-toggle" onclick="toggleGroup('group-learn', 'learningBox')">
+            <span class="material-icons">timeline</span> Öğrenme Eğrisi
+        </button>
+        <div id="learningBox" class="glass-card">
+            <h3><span class="material-icons">timeline</span> Model Başarım Eğrisi</h3>
+            <div style="display:flex; align-items:center; gap:15px;">
+                <button class="sub-btn" onclick="loadLearningCurve(this)">Grafiği Yükle</button>
+                <div class="panelSpinner"><div class="loader"></div></div>
+            </div>
+            <img id="learningImg" src="" class="chart-img" style="display:none;">
         </div>
+    </div>
 
-        <div id="analysisContent" style="display:none;">
-            <table id="summaryTable" style="margin-bottom:25px;">
-                <thead><tr><th>Metrik / Açıklama</th><th>Değer</th></tr></thead>
-                <tbody></tbody>
-            </table>
+    <div class="panel-group" id="group-full">
+        <button class="main-toggle" onclick="toggleGroup('group-full', 'fullTestBox')">
+            <span class="material-icons">assessment</span> Tam Analiz (Full Report)
+        </button>
+        <div id="fullTestBox" class="glass-card">
+            <h3><span class="material-icons">fact_check</span> Tam Test Seti Analizi ve Sınıf Raporu</h3>
+            <p style="font-size:15px; opacity:0.8; margin-bottom:25px;">Tüm test verisi (12.000+ örnek) taranır. Bu işlem birkaç saniye sürebilir.</p>
+            
+            <div style="display:flex; align-items:center; gap:20px; margin-bottom:25px; flex-wrap:wrap;">
+                <button class="sub-btn" onclick="loadFullTestAnalysis(this)" style="padding:12px 25px;">
+                    <span class="material-icons" style="font-size:20px;">play_arrow</span> Analizi Başlat
+                </button>
 
-            <h4 class="text-bg"><span class="material-icons" style="vertical-align:middle;">table_chart</span> Sınıf Bazlı Performans Raporu</h4>
-            <div id="reportTableContainer">
-                <table id="reportTable">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Sınıf Adı</th>
-                            <th>Precision</th>
-                            <th>Recall</th>
-                            <th>F1-Score</th>
-                            <th>Destek (Adet)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        </tbody>
+                <button class="sub-btn" onclick="loadLastAnalysis(this)" style="padding:12px 25px; background: linear-gradient(135deg, #a8ff78, #78ffd6);">
+                    <span class="material-icons" style="font-size:20px;">folder_open</span> Mevcut Analizi Yükle
+                </button>
+                <div class="panelSpinner"><div class="loader"></div></div>
+            </div>
+
+            <div id="analysisContent" style="display:none;">
+                <table id="summaryTable" style="margin-bottom:30px;">
+                    <thead><tr><th>Metrik / Açıklama</th><th>Değer</th></tr></thead>
+                    <tbody></tbody>
                 </table>
-            </div>
 
-            <div style="margin-top:35px;">
-                <h4 class="text-bg"><span class="material-icons" style="vertical-align:middle;">gradient</span> Genel Confusion Matrix</h4>
-                <img id="fullCmImg" src="" class="chart-img">
+                <h4 class="text-bg"><span class="material-icons" style="vertical-align:middle;">table_chart</span> Sınıf Bazlı Performans Raporu</h4>
+                <div id="reportTableContainer">
+                    <table id="reportTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Sınıf Adı</th>
+                                <th>Precision</th>
+                                <th>Recall</th>
+                                <th>F1-Score</th>
+                                <th>Destek (Adet)</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top:40px;">
+                    <h4 class="text-bg"><span class="material-icons" style="vertical-align:middle;">gradient</span> Genel Confusion Matrix</h4>
+                    <img id="fullCmImg" src="" class="chart-img">
+                </div>
             </div>
         </div>
     </div>
+
 </div>
 
 <script>
 let showLogs = false;
 let lastLogsLength = 0;
 let lastProgress = 0;
-let fullTestVisible = false;
+
+// [GÜNCELLENDİ] Aç/Kapa Fonksiyonu (Animasyonlu Kapanış)
+function toggleGroup(groupId, panelId) {
+    const group = document.getElementById(groupId);
+    const panel = document.getElementById(panelId);
+    
+    // Eğer panel açıksa (display:block) VE henüz kapanma animasyonunda değilse
+    if (panel.style.display === "block" && !panel.classList.contains("closing")) {
+        
+        // 1. Kapanma animasyonu sınıfını ekle (CSS'deki slideUp çalışır)
+        panel.classList.add("closing");
+        
+        // 2. Butonun altındaki köşe yuvarlamayı hemen düzelt (Görsel bütünlük için)
+        group.classList.remove("active");
+
+        // 3. Animasyon süresi kadar bekle (300ms), sonra gizle
+        setTimeout(() => {
+            panel.style.display = "none";
+            panel.classList.remove("closing"); // Bir sonraki açılış için sınıfı temizle
+        }, 300); // CSS animasyon süresi ile aynı olmalı
+
+    } else if (panel.style.display !== "block") {
+        // Eğer kapalıysa, aç
+        panel.style.display = "block";
+        group.classList.add("active");
+    }
+}
 
 function startTraining() {
     document.getElementById("startBtn").disabled = true;
@@ -308,18 +418,6 @@ function stopTraining() {
     fetch("/stop_training");
     document.getElementById("stopBtn").disabled = true;
     document.getElementById("startBtn").disabled = false;
-}
-
-function toggleTrainingPanel() {
-    var panel = document.getElementById("trainingPanelContainer");
-    
-    // Eğer panel kapalıysa (none), görünür yap (block)
-    if (panel.style.display === "none") {
-        panel.style.display = "block";
-    } else {
-        // Açıksa gizle
-        panel.style.display = "none";
-    }
 }
 
 function toggleLogs() {
@@ -335,35 +433,6 @@ function hidePanelSpinner(button) {
     const spinner = button.parentElement.querySelector(".panelSpinner");
     if(spinner) spinner.style.display = "none";
     button.disabled = false;
-}
-function toggleTestPanel() {
-    const panel = document.getElementById("testPanel");
-    panel.style.display = (panel.style.display === "block") ? "none" : "block";
-}
-function toggleUploadPanel() {
-    const panel = document.getElementById("uploadBox");
-    panel.style.display = (panel.style.display === "block") ? "none" : "block";
-}
-function toggleSampleGridPanel() {
-    const panel = document.getElementById("sampleGridBox");
-    panel.style.display = (panel.style.display === "block") ? "none" : "block";
-}
-function toggleConfusionPanel() {
-    const box = document.getElementById("cmBox");
-    box.style.display = (box.style.display === "block") ? "none" : "block";
-}
-function toggleFullTestBox() {
-    const box = document.getElementById("fullTestBox");
-    fullTestVisible = !fullTestVisible;
-    box.style.display = fullTestVisible ? "block" : "none";
-}
-function toggleRocPanel() {
-    const box = document.getElementById("rocBox");
-    box.style.display = (box.style.display === "block") ? "none" : "block";
-}
-function toggleLearningPanel() {
-    const box = document.getElementById("learningBox");
-    box.style.display = (box.style.display === "block") ? "none" : "block";
 }
 
 function runTestSample(button) {
@@ -482,7 +551,6 @@ function loadLearningCurve(button) {
     }).catch(err => { console.error(err); hidePanelSpinner(button); });
 }
 
-// --- GÜNCELLENEN TAM TEST ANALİZİ FONKSİYONU ---
 function loadFullTestAnalysis(button) {
     const spinner = button.parentElement.querySelector(".panelSpinner");
     if (spinner) spinner.style.display = "flex";
@@ -499,7 +567,6 @@ function loadFullTestAnalysis(button) {
                 return;
             }
 
-            // 1. Özet Tabloyu Doldur (Eski Kısım)
             const tbodySummary = document.querySelector("#summaryTable tbody");
             tbodySummary.innerHTML = "";
             data.summary.forEach(row => {
@@ -514,13 +581,11 @@ function loadFullTestAnalysis(button) {
                 tbodySummary.appendChild(tr);
             });
 
-            // 2. [YENİ] Detaylı Rapor Tablosunu Doldur
             const tbodyReport = document.querySelector("#reportTable tbody");
             tbodyReport.innerHTML = "";
             if (data.report) {
                 data.report.forEach(item => {
                     let tr = document.createElement("tr");
-                    // F1 skoru düşükse satırı hafif kırmızı yap
                     let f1Val = parseFloat(item.f1);
                     let rowBg = "";
                     if(f1Val < 0.6) rowBg = "rgba(255, 0, 0, 0.15)";
@@ -538,7 +603,6 @@ function loadFullTestAnalysis(button) {
                 });
             }
 
-            // 3. Görselleri Ayarla
             document.getElementById("fullCmImg").src = "data:image/png;base64," + data.cm;
             document.getElementById("analysisContent").style.display = "block";
             
@@ -548,41 +612,27 @@ function loadFullTestAnalysis(button) {
         .catch(err => { console.error(err); if (spinner) spinner.style.display = "none"; button.disabled = false; });
 }
 
-
-// --- MEVCUT ANALİZİ YÜKLEME FONKSİYONU ---
 function loadLastAnalysis(button) {
-    // 1. Spinner ve Buton Kontrolü (Görsel Hazırlık)
-    // Not: HTML tarafında bu butonun yanına da "panelSpinner" sınıfına sahip bir div koyduğunuzu varsayıyoruz.
     const spinner = button.parentElement.querySelector(".panelSpinner");
     if (spinner) spinner.style.display = "flex";
     
-    button.disabled = true; // Çift tıklamayı önle
-    document.getElementById("analysisContent").style.display = "none"; // İçeriği temizle/gizle
+    button.disabled = true; 
+    document.getElementById("analysisContent").style.display = "none"; 
 
-    // 2. Python'dan Kayıtlı Veriyi İste
     fetch("/load_last_analysis")
         .then(r => r.json())
         .then(data => {
-            // Hata Kontrolü
             if(data.error) {
                 alert(data.error);
                 if (spinner) spinner.style.display = "none";
                 button.disabled = false;
                 return;
             }
-
-            // -------------------------------------------------------
-            // AŞAĞIDAKİ KISIM loadFullTestAnalysis İLE AYNIDIR
-            // AMACIMIZ GÖRÜNTÜNÜN BİREBİR AYNI OLMASI
-            // -------------------------------------------------------
-
-            // A. Özet Tabloyu Doldur
             const tbodySummary = document.querySelector("#summaryTable tbody");
             tbodySummary.innerHTML = "";
             data.summary.forEach(row => {
                 let tr = document.createElement("tr");
                 let valColor = "white"; 
-                // Renklendirme mantığı
                 if (row.aciklama.toLowerCase().includes("doğruluk") || row.aciklama.toLowerCase().includes("accuracy")) {
                      if (row.deger.includes("9") || row.deger.includes("100")) valColor = "#6affae"; 
                      else if (row.deger.includes("8")) valColor = "#ffe35c";
@@ -592,14 +642,11 @@ function loadLastAnalysis(button) {
                 tbodySummary.appendChild(tr);
             });
 
-            // B. Detaylı Rapor Tablosunu Doldur
             const tbodyReport = document.querySelector("#reportTable tbody");
             tbodyReport.innerHTML = "";
             if (data.report) {
                 data.report.forEach(item => {
                     let tr = document.createElement("tr");
-                    
-                    // F1 skoru düşükse satırı hafif kırmızı yap
                     let f1Val = parseFloat(item.f1);
                     let rowBg = "";
                     if(f1Val < 0.6) rowBg = "rgba(255, 0, 0, 0.15)";
@@ -617,10 +664,7 @@ function loadLastAnalysis(button) {
                 });
             }
 
-            // C. Görseli (Confusion Matrix) Yerleştir
             document.getElementById("fullCmImg").src = "data:image/png;base64," + data.cm;
-            
-            // D. Paneli Göster ve İşlemi Bitir
             document.getElementById("analysisContent").style.display = "block";
             
             if (spinner) spinner.style.display = "none";
@@ -633,7 +677,6 @@ function loadLastAnalysis(button) {
             button.disabled = false; 
         });
 }
-
 
 function updateProgress() {
     fetch("/progress").then(r => r.json()).then(data => {
