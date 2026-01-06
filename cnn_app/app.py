@@ -38,7 +38,8 @@ import numpy as np
 import pandas as pd
 import time
 import gc
-from flask import Flask, render_template, request, jsonify
+# DÜZELTME 1: send_from_directory eklendi
+from flask import Flask, render_template, request, jsonify, send_from_directory
 from PIL import Image
 
 # =======================================================
@@ -249,6 +250,11 @@ def cnn_predict(img_or_path, true_label=None):
 @app.route("/")
 def index(): return render_template("index.html")
 
+# DÜZELTME 2: GÖRSEL SERVİS ETMEK İÇİN YENİ ROTA (Undefined hatasını çözer)
+@app.route('/dataset/<path:filename>')
+def serve_dataset(filename):
+    return send_from_directory('dataset', filename)
+
 @app.route("/start_training")
 def start_training_route():
     global training_thread
@@ -282,7 +288,8 @@ def predict_upload():
 
 @app.route("/predict_random_test")
 def predict_random_test():
-    test_csv = pd.read_csv(os.path.join("", "dataset", "Test.csv"))
+    # DÜZELTME 3: cnn_app ön eki kaldırıldı, dataset yolu start.sh yapısına uygun hale geldi
+    test_csv = pd.read_csv(os.path.join("dataset", "Test.csv"))
     row = test_csv.sample(1).iloc[0]
     return jsonify(cnn_predict(os.path.join("dataset", row["Path"]), int(row["ClassId"])))
 
@@ -556,9 +563,10 @@ def load_saved_analysis():
 
 if os.path.exists(MODEL_PATH):
     try:
-        model = tf.keras.models.load_model(MODEL_PATH)
+        # DÜZELTME 4: compile=False eklendi (Optimizer hatasını susturmak için)
+        model = tf.keras.models.load_model(MODEL_PATH, compile=False)
         print("Model yüklendi.")
     except: model = None
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)
+    app.run(host="0.0.0.0", port=7860, debug=True, use_reloader=False)
