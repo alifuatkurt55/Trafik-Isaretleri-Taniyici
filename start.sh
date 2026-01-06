@@ -74,12 +74,39 @@ fi
 # ----------------------------------------------------------------
 # 5. ADIM: KONTROL VE BAŞLATMA
 # ----------------------------------------------------------------
-echo "--- dataset/Train İÇERİĞİ (İLK 5 DOSYA) ---"
-ls dataset/Train | head -n 5
-echo "--- dataset/Test İÇERİĞİ (İLK 5 DOSYA) ---"
-ls dataset/Test | head -n 5
-echo "--------------------------------------------"
+#echo "--- dataset/Train İÇERİĞİ (İLK 5 DOSYA) ---"
+#ls dataset/Train | head -n 5
+#echo "--- dataset/Test İÇERİĞİ (İLK 5 DOSYA) ---"
+#ls dataset/Test | head -n 5
+#echo "--------------------------------------------"
 
-echo "Uygulama başlatılıyor..."
+#echo "Uygulama başlatılıyor..."
 # Timeout süresini 600 saniye (100 dakika) yaptık ki eğitim sırasında kapanmasın
+#exec gunicorn app:app --bind 0.0.0.0:7860 --workers 1 --threads 8 --timeout 6000
+
+
+# ----------------------------------------------------------------
+# 5. ADIM: CNN HAZIRLIĞI (YENİ EKLENEN KISIM)
+# ----------------------------------------------------------------
+echo "--- CNN ORTAMI HAZIRLANIYOR ---"
+
+# Eğer CNN uygulaması veriyi kendi içinde bekliyorsa, 
+# hazırladığımız 'dataset' klasörünü cnn_app içine kopyalıyoruz/taşıyoruz.
+if [ -d "cnn_app" ]; then
+    echo "Hazırlanan dataset klasörü cnn_app içine taşınıyor..."
+    # Mevcut dataset varsa silip yenisini koyalım ki çakışma olmasın
+    rm -rf cnn_app/dataset
+    cp -r dataset cnn_app/
+else
+    echo "HATA: cnn_app klasörü bulunamadı! Lütfen dosya yapınızı kontrol edin."
+fi
+
+# ----------------------------------------------------------------
+# 6. ADIM: BAŞLATMA (CNN İÇİN GÜNCELLENDİ)
+# ----------------------------------------------------------------
+echo "CNN Klasörüne geçiliyor..."
+cd cnn_app
+
+echo "CNN Uygulaması başlatılıyor..."
+# Artık cnn_app içindeyiz, buradaki app.py çalışacak.
 exec gunicorn app:app --bind 0.0.0.0:7860 --workers 1 --threads 8 --timeout 6000

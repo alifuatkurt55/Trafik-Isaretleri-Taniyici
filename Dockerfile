@@ -3,7 +3,8 @@ FROM python:3.10
 WORKDIR /code
 
 # Kütüphaneleri kur
-COPY ./requirements.txt /code/requirements.txt
+#COPY ./requirements.txt /code/requirements.txt
+COPY cnn_app/requirements.txt /code/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 # DÜZELTME BURADA: 'chmod' kelimesini sildik.
