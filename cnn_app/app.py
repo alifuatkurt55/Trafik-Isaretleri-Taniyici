@@ -70,8 +70,8 @@ from sklearn.model_selection import train_test_split
 # Flask Setup
 # =========================
 app = Flask(__name__)
-UPLOAD_FOLDER = "cnn_app/dataset/Upload"
-MODEL_PATH = "cnn_app/model/traffic_sign_cnn_deep.h5"
+UPLOAD_FOLDER = "dataset/Upload"
+MODEL_PATH = "model/traffic_sign_cnn_deep.h5"
 IMG_SIZE = (64, 64)
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -107,7 +107,7 @@ def train_model():
     stop_training = False
     progress.update({"running": True, "percent": 0, "status": "Eğitim başlatıldı..."})
     
-    TRAIN_DIR = "cnn_app/dataset/Train"
+    TRAIN_DIR = "dataset/Train"
     IMG_SIZE = (30, 30)
     classes = 43
     data, labels = [], []
@@ -166,7 +166,7 @@ def train_model():
     
     # --- EĞİTİM GEÇMİŞİNİ KAYDET (YENİ) ---
     try:
-        history_path = os.path.join("cnn_app", "training_history.json")
+        history_path = os.path.join("training_history.json")
         with open(history_path, "w", encoding="utf-8") as f:
             # Numpy float32 tiplerini python float'a çevir
             h = {k: [float(val) for val in v] for k, v in train_history.history.items()}
@@ -230,7 +230,7 @@ def cnn_predict(img_or_path, true_label=None):
     test_b64 = f"data:image/png;base64,{base64.b64encode(buf1).decode()}"
     
     meta_b64 = test_b64
-    meta_path = f"cnn_app/dataset/Meta/{prediction}.png"
+    meta_path = f"dataset/Meta/{prediction}.png"
     if os.path.exists(meta_path):
         meta_img = cv2.imread(meta_path)
         if meta_img is not None:
@@ -282,24 +282,24 @@ def predict_upload():
 
 @app.route("/predict_random_test")
 def predict_random_test():
-    test_csv = pd.read_csv(os.path.join("cnn_app", "dataset", "Test.csv"))
+    test_csv = pd.read_csv(os.path.join("", "dataset", "Test.csv"))
     row = test_csv.sample(1).iloc[0]
-    return jsonify(cnn_predict(os.path.join("cnn_app", "dataset", row["Path"]), int(row["ClassId"])))
+    return jsonify(cnn_predict(os.path.join("dataset", row["Path"]), int(row["ClassId"])))
 
 @app.route("/predict_batch_test/<int:num_samples>")
 def predict_batch_test(num_samples):
-    test_csv = pd.read_csv("cnn_app/dataset/Test.csv")
+    test_csv = pd.read_csv("dataset/Test.csv")
     samples = test_csv.sample(min(num_samples, len(test_csv)))
-    results = [cnn_predict(os.path.join("cnn_app", "dataset", row["Path"]), int(row["ClassId"])) for _, row in samples.iterrows()]
+    results = [cnn_predict(os.path.join("dataset", row["Path"]), int(row["ClassId"])) for _, row in samples.iterrows()]
     return jsonify(results)
 
 @app.route("/confusion_samples/<int:num_samples>")
 def confusion_samples(num_samples):
-    test_csv = pd.read_csv("cnn_app/dataset/Test.csv")
+    test_csv = pd.read_csv("dataset/Test.csv")
     samples = test_csv.sample(min(num_samples, len(test_csv)))
     y_true, y_pred = [], []
     for _, row in samples.iterrows():
-        res = cnn_predict(os.path.join("cnn_app", "dataset", row["Path"]))
+        res = cnn_predict(os.path.join("", "dataset", row["Path"]))
         y_true.append(int(row["ClassId"]))
         y_pred.append(res["prediction"])
     
@@ -320,7 +320,7 @@ def roc_samples(num_samples):
     if model is None: return jsonify({"error": "Model yüklenmedi."})
     
     try:
-        test_csv = pd.read_csv("cnn_app/dataset/Test.csv")
+        test_csv = pd.read_csv("dataset/Test.csv")
         samples = test_csv.sample(min(num_samples, len(test_csv)))
         
         y_true = []
@@ -329,7 +329,7 @@ def roc_samples(num_samples):
 
         for _, row in samples.iterrows():
             try:
-                img_path = os.path.join("cnn_app", "dataset", row["Path"])
+                img_path = os.path.join("dataset", row["Path"])
                 img = cv2.imread(img_path)
                 if img is None: continue
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -382,7 +382,7 @@ def epoch_plot():
         data = train_history.history
     # 2. Dosyadan oku
     else:
-        history_path = os.path.join("cnn_app", "training_history.json")
+        history_path = os.path.join("training_history.json")
         if os.path.exists(history_path):
             try:
                 with open(history_path, "r", encoding="utf-8") as f:
@@ -425,7 +425,7 @@ def full_test_analysis():
 
     try:
         print("--- Analiz Başlatılıyor ---")
-        test_csv = pd.read_csv("cnn_app/dataset/Test.csv")
+        test_csv = pd.read_csv("dataset/Test.csv")
         y_true, y_pred = [], []
         y_scores = []
         
@@ -440,7 +440,7 @@ def full_test_analysis():
             full_test_progress = int(((idx + 1) / total) * 95)
             
             try:
-                img_path = os.path.join("cnn_app", "dataset", row["Path"])
+                img_path = os.path.join("dataset", row["Path"])
                 img = cv2.imread(img_path)
                 if img is None: continue
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -511,7 +511,7 @@ def full_test_analysis():
         full_test_results = {"cm": cm_b64, "roc": roc_b64, "summary": summary}
         
         try:
-            save_path = os.path.join("cnn_app", "full_test_results.json")
+            save_path = os.path.join("full_test_results.json")
             with open(save_path, "w", encoding="utf-8") as f:
                 json.dump(full_test_results, f, ensure_ascii=False)
             print(f"Sonuçlar dosyaya kaydedildi: {save_path}")
@@ -543,7 +543,7 @@ def full_test_analysis_results():
 @app.route("/load_saved_analysis")
 def load_saved_analysis():
     try:
-        save_path = os.path.join("cnn_app", "full_test_results.json")
+        save_path = os.path.join("full_test_results.json")
         if os.path.exists(save_path):
             with open(save_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
