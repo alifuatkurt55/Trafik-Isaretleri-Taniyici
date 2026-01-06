@@ -5,72 +5,32 @@
 <title>Model Eğitim Paneli</title>
 <style>
 body { font-family: 'Inter', Arial, sans-serif; margin:30px; background:#f0f2f5; color:#333; }
-
 h1 { font-size:32px; font-weight:bold; margin-bottom:20px; background:linear-gradient(90deg, #4f46e5, #3b82f6); color:white; padding:15px 25px; border-radius:12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-
 button { background:#3b82f6; border:none; padding:10px 20px; color:white; font-size:15px; border-radius:10px; cursor:pointer; margin-right:10px; transition:0.25s all; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-
 button:disabled { background:#9bbcf9; cursor:not-allowed; opacity:0.7; box-shadow:none; }
-
 button:hover:not(:disabled) { background:#2563eb; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
-
 #progressBarContainer { width:100%; height:30px; background:#e5e7eb; border-radius:15px; overflow:hidden; margin-top:20px; border:1px solid #d1d5db; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05); }
-
 #progressBar { height:100%; width:0%; background:#3b82f6; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; font-size:15px; transition: width 0.2s ease; border-radius:15px; }
-
 #statusText { margin-top:12px; font-size:16px; font-weight:500; color:#4b5563; }
-
 #logsBox { width:100%; max-width:100%; box-sizing: border-box; height:300px; background:#1f2937; color:#10b981; padding:15px; font-size:14px; overflow-y:auto; margin:20px auto 0 auto; display:none; border-radius:10px; border:1px solid #374151; box-shadow: inset 0 2px 6px rgba(0,0,0,0.2);}
-
 #testPanel { display:none; margin-top: 20px; padding: 20px; background: #f9fafb; border: 1px solid #ddd; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);}
-
-#testPanelContent { display:none; gap:20px; flex-wrap:wrap; display: flex; justify-content: flex-start; gap: 20px; margin-top: 15px;}
-
-#testPanel .imgBox {text-align: center; background: white; border: 1px solid #ddd; border-radius: 10px; padding: 15px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);}
-
-#summaryTable {display:none; width:60%; border-collapse:collapse; margin-top:10px; border:1px solid #999; border-radius:8px; overflow:hidden;}
-
-.panelSpinner { display: none; text-align: center; margin-left: 10px; /* butonun yanında */}
-
-.panelSpinner .loader { width: 30px; height: 30px; border-radius: 50%; background: conic-gradient(#3b82f6 0%, #60a5fa 90%, #d1d5db 100%); animation: spinGradient 1s linear infinite; margin:auto; }
-
-@keyframes spinGradient { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
+#testPanelContent { display:none; gap:20px; flex-wrap:wrap; display: flex; justify-content: flex-start; margin-top: 15px;}
 .imgBox { background:white; padding:15px; border-radius:12px; border:1px solid #e5e7eb; width:180px; text-align:center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: transform 0.2s ease, box-shadow 0.2s ease;}
-
 .imgBox:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1);}
-
 .imgBox img { margin-top:15px; width:160px; height:160px; border-radius:10px; border:1px solid #d1d5db; object-fit: cover;}
-
 #sampleGridBox { margin-top: 25px; padding: 20px; display: none; background: white; border-radius: 15px; border: 1px solid #e5e7eb; box-shadow: 0 6px 20px rgba(0,0,0,0.05); width: 100%; box-sizing: border-box; max-width: 100%; }
-
-#sampleGridBox img { width: 100%; border-radius: 8px; object-fit: cover; }
-
 #sampleGrid { display: grid; gap: 15px; width: 100%; box-sizing: border-box; padding: 10px; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
-
 #epochGraphBox { margin-top:30px; display:none; padding:15px; background:white; border-radius:10px; border:1px solid #aaa; }
-
 #epochGraphImg { margin-top:15px; width:100%; border:1px solid #ccc; border-radius:8px; }
-
 #cmBox { margin-top:30px; padding:20px; background:white; border:2px solid #e5e7eb; border-radius:15px; display:none; box-shadow: 0 6px 20px rgba(0,0,0,0.05); }
-
 #cmImg { width:100%; border-radius:12px; }
-
 .label-ok { color:#10b981; font-weight:bold; }
-
 .label-wrong { color:#ef4444; font-weight:bold; }
-
 #loadingSpinner { display:none; text-align:center; margin-top:30px; }
-
-.loader { width: 60px; height: 60px; border-radius: 50%; background: conic-gradient(#3b82f6 0%, #60a5fa 90%, #d1d5db 100%); animation: spinGradient 1s linear infinite; margin:auto; }
-
-.loader-text { margin-top:10px; color:#374151; font-weight:500; font-size:15px; animation: pulse 1.2s infinite; }
-
+.panelSpinner { display: none; text-align: center; margin-left: 10px; }
+.loader { width: 30px; height: 30px; border-radius: 50%; background: conic-gradient(#3b82f6 0%, #60a5fa 90%, #d1d5db 100%); animation: spinGradient 1s linear infinite; margin:auto; }
+.loader-lg { width: 60px; height: 60px; }
 @keyframes spinGradient { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -90,27 +50,21 @@ button:hover:not(:disabled) { background:#2563eb; transform: translateY(-2px); b
 <div id="progressBarContainer">
     <div id="progressBar"> % 0</div>
 </div>
-
 <p id="statusText">Durum: Bekleniyor...</p>
-
 <div id="logsBox"></div>
 
 <div id="testPanel">
     <h3>📊 Rastgele Tek Test Örneği</h3>
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
         <button id="runTestBtn" onclick="runTestSample(this)">🔄 Rastgele Test Yap</button>
-        <div class="panelSpinner">
-            <div class="loader"></div>
-        </div>
+        <div class="panelSpinner"><div class="loader"></div></div>
     </div>
-
     <div id="testPanelContent">
         <div class="imgBox">
             <h3>Test Görseli</h3>
             <img id="testImg" src="">
             <p id="trueLabel"></p>
         </div>
-
         <div class="imgBox">
             <h3>Tahmin</h3>
             <img id="metaImg" src="">
@@ -119,91 +73,62 @@ button:hover:not(:disabled) { background:#2563eb; transform: translateY(-2px); b
     </div>
 </div>
 
-<div id="sampleGridBox" style="display:none;">
-    <h3 id="sampleGridBoxTitle">📊 Rastgele 50 Test Örneği (Gerçek / Tahmin)</h3>
+<div id="sampleGridBox">
+    <h3 id="sampleGridBoxTitle">📊 Rastgele 50 Test Örneği</h3>
     <div style="display:flex; align-items:center; gap:10px; margin-top:15px;">
-        <label for="batchSampleInput">Toplu Test Örneği Sayısı:</label>
-        <input type="number" id="batchSampleInput" value="50" min="5" max="500" 
-               style="padding:5px; width:80px;">
-        <button id="showSampleBtn" onclick="showSampleGrid(this)">Göster</button>
-        <div class="panelSpinner">
-            <div class="loader"></div>
-        </div>
+        <label>Toplu Test Sayısı:</label>
+        <input type="number" id="batchSampleInput" value="50" min="5" max="500" style="padding:5px; width:80px;">
+        <button onclick="showSampleGrid(this)">Göster</button>
+        <div class="panelSpinner"><div class="loader"></div></div>
     </div>
     <div id="sampleGrid"></div>
 </div>
 
 <div id="cmBox">
-    <h3 id="cmTitle">📘 Confusion Matrix – Rastgele 30 Örnek</h3>
+    <h3 id="cmTitle">📘 Confusion Matrix</h3>
     <div style="margin-bottom:10px; display:flex; align-items:center; gap:10px;">
-    <input type="number" id="cmSampleInput" value="30" min="5" max="500" 
-           style="padding:6px; width:120px;">
-    <button onclick="loadConfusionMatrix(this)">Oluştur</button>
-
-    <div class="panelSpinner">
-        <div class="loader"></div>
+        <input type="number" id="cmSampleInput" value="30" min="5" max="500" style="padding:6px; width:120px;">
+        <button onclick="loadConfusionMatrix(this)">Oluştur</button>
+        <div class="panelSpinner"><div class="loader"></div></div>
     </div>
-</div>
     <img id="cmImg" src="">
 </div>
 
 <div id="fullTestBox" style="display:none; margin-top:30px; padding:15px; background:white; border-radius:10px; border:1px solid #aaa;">
     <h3>📊 Tam Test Seti Analizi</h3>
-
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
         <button onclick="loadFullTestAnalysis(this)">Tam Testi Çalıştır</button>
-        <div class="panelSpinner">
-            <div class="loader"></div>
-        </div>
+        <div class="panelSpinner"><div class="loader"></div></div>
     </div>
-
-    <h4 style="margin-top:15px;">Özet Tablo</h4>
     <table id="summaryTable">
         <thead>
-            <tr style="background:#3b82f6; color:white; font-weight:bold;">
-                <th style="padding:10px; border:1px solid #ccc;">Açıklama</th>
-                <th style="padding:10px; border:1px solid #ccc;">Değer</th>
+            <tr style="background:#3b82f6; color:white;">
+                <th style="padding:10px;">Açıklama</th>
+                <th style="padding:10px;">Değer</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
-
-    <h4 style="margin-top:15px;">Confusion Matrix</h4>
-    <img id="fullCmImg" src="" style="display:none; width:100%; border:1px solid #ccc; border-radius:8px;">
-
+    <img id="fullCmImg" src="" style="display:none; width:100%; border:1px solid #ccc; margin-top:15px;">
 </div>
 
-<div id="epochGraphBox" >
+<div id="epochGraphBox">
     <h3>📈 Epoch Grafiği</h3>
-    <img id="epochGraphImg" src="" >
+    <img id="epochGraphImg" src="">
 </div>
 
 <div id="uploadBox" style="display: none; margin-top:30px; padding:15px; background:white; border-radius:10px; border:1px solid #aaa;">
     <h3>📷 Görsel Yükleyerek Tahmin</h3>
-
     <input type="file" id="uploadImage" accept="image/*" style="margin-bottom:10px;">
-
     <button onclick="uploadPanel()">Tahmin Et</button>
-
-    <div class="panelSpinner" id="uploadSpinner" style="display:none;">
-        <div class="loader"></div>
-    </div>
-
-    <h4 style="margin-top:15px;">Tahmin Sonucu</h4>
+    <div class="panelSpinner" id="uploadSpinner" style="display:none;"><div class="loader"></div></div>
     <div id="uploadResult" style="padding:10px; background:#f8f8f8; border-radius:8px; display:none;"></div>
-</div>
-
-<div id="loadingSpinner">
-    <div class="loader"></div>
-    <p class="loader-text">Analiz yapılıyor, lütfen bekleyin...</p>
 </div>
 
 <script>
 let showLogs = false;
 let lastLogsLength = 0;
 let lastProgress = 0;
-let fullTestVisible = false;
-let epochGraphVisible = false;
 
 function startTraining() {
     document.getElementById("startBtn").disabled = true;
@@ -213,8 +138,6 @@ function startTraining() {
 
 function stopTraining() {
     fetch("/stop_training");
-    document.getElementById("stopBtn").disabled = true;
-    document.getElementById("startBtn").disabled = false;
 }
 
 function toggleLogs() {
@@ -222,254 +145,143 @@ function toggleLogs() {
     document.getElementById("logsBox").style.display = showLogs ? "block" : "none";
 }
 
-function showSpinner() { document.getElementById("loadingSpinner").style.display = "block"; }
-function hideSpinner() { document.getElementById("loadingSpinner").style.display = "none"; }
-
-// ----------------------------------
-// PANEL SPINNER HELPERS
-// ----------------------------------
-function showPanelSpinner(button) {
-    const spinner = button.parentElement.querySelector(".panelSpinner");
+function showPanelSpinner(btn) {
+    const spinner = btn.parentElement.querySelector(".panelSpinner");
     if(spinner) spinner.style.display = "flex";
-    button.disabled = true;
+    btn.disabled = true;
 }
 
-function hidePanelSpinner(button) {
-    const spinner = button.parentElement.querySelector(".panelSpinner");
+function hidePanelSpinner(btn) {
+    const spinner = btn.parentElement.querySelector(".panelSpinner");
     if(spinner) spinner.style.display = "none";
-    button.disabled = false;
+    btn.disabled = false;
 }
 
-// ----------------------------------
-// PANEL TOGGLE WITH LOADING
-// ----------------------------------
-function togglePanelWithSpinner(panelId, loadFunc, button) {
-    const panel = document.getElementById(panelId);
-    if (!panel) return;
-
-    if (panel.style.display === "block") {
-        panel.style.display = "none";
-    } else {
-        panel.style.display = "block";
-
-        if (button) showPanelSpinner(button);
-
-        loadFunc()
-            .finally(() => {
-                if (button) hidePanelSpinner(button);
-            });
-    }
-}
-
-// ----------------------------------
-// TEK TEST PANELİ
-// ----------------------------------
 function toggleTestPanel() {
-    const panel = document.getElementById("testPanel");
-    const content = document.getElementById("testPanelContent");
+    const p = document.getElementById("testPanel");
+    p.style.display = (p.style.display === "none") ? "block" : "none";
+}
 
-    if (panel.style.display === "none" || panel.style.display === "") {
-        panel.style.display = "block";
-        content.style.display = "none";
+function toggleSampleGridPanel() {
+    const p = document.getElementById("sampleGridBox");
+    p.style.display = (p.style.display === "none") ? "block" : "none";
+}
+
+function toggleConfusionPanel() {
+    const p = document.getElementById("cmBox");
+    p.style.display = (p.style.display === "block") ? "none" : "block";
+}
+
+function toggleFullTestBox() {
+    const p = document.getElementById("fullTestBox");
+    p.style.display = (p.style.display === "none") ? "block" : "none";
+}
+
+function toggleUploadPanel() {
+    const p = document.getElementById("uploadBox");
+    p.style.display = (p.style.display === "none") ? "block" : "none";
+}
+
+function toggleEpochGraph() {
+    const p = document.getElementById("epochGraphBox");
+    if(p.style.display === "block") {
+        p.style.display = "none";
     } else {
-        panel.style.display = "none";
+        p.style.display = "block";
+        loadEpochPlot();
     }
 }
 
-function runTestSample(button) {
+// --- TEK TEST ---
+function runTestSample(btn) {
+    showPanelSpinner(btn);
     const content = document.getElementById("testPanelContent");
-    showPanelSpinner(button);
-
+    
     fetch("/predict_random_test")
         .then(r => r.json())
         .then(data => {
             content.style.display = "flex";
-            document.getElementById("testImg").src = "data:image/png;base64," + data.test_img;
-            document.getElementById("metaImg").src = "data:image/png;base64," + data.meta_img;
+            // DÜZELTME 1: Python zaten 'data:image...' gönderiyor, biz tekrar eklemiyoruz.
+            document.getElementById("testImg").src = data.test_img;
+            document.getElementById("metaImg").src = data.meta_img;
             
-            // DÜZELTME: Backend 'class_name' döndürüyor.
-            document.getElementById("trueLabel").innerHTML = "Gerçek Sınıf: <b>" + data.class_name + "</b>";
+            // DÜZELTME 2: 'true_label' yerine 'class_name' kullanıyoruz.
+            document.getElementById("trueLabel").innerHTML = "Gerçek: <b>" + data.class_name + "</b>";
 
-            const pred = document.getElementById("predLabel");
-            // DÜZELTME: İsim karşılaştırması yapıyoruz (prediction_name)
             const isCorrect = data.prediction_name === data.class_name;
-
-            pred.innerHTML = isCorrect
+            const pred = document.getElementById("predLabel");
+            pred.innerHTML = isCorrect 
                 ? `Tahmin: <span class='label-ok'>${data.prediction_name} ✓</span>`
                 : `Tahmin: <span class='label-wrong'>${data.prediction_name} ✗</span>`;
 
-            hidePanelSpinner(button);
+            hidePanelSpinner(btn);
         })
-        .catch(err => {
-            console.error(err);
-            hidePanelSpinner(button);
-        });
+        .catch(e => { console.error(e); hidePanelSpinner(btn); });
 }
 
-function toggleSampleGridPanel() {
-    const panel = document.getElementById("sampleGridBox");
-
-    // Panel kapalıysa aç, açıksa kapat
-    if (panel.style.display === "none" || panel.style.display === "") {
-        panel.style.display = "block";
-        return true;   // açıldı
-    } else {
-        panel.style.display = "none";
-        return false;  // kapandı
-    }
-}
-
-// ----------------------------------
-// TOPLU TEST PANELİ
-// ----------------------------------
-function showSampleGrid(button) {
-    const numSamples = parseInt(document.getElementById("batchSampleInput").value) || 50;
-
-    document.getElementById("sampleGridBoxTitle").innerText =
-        `📊 Rastgele ${numSamples} Test Örneği (Gerçek / Tahmin)`;
-
+// --- TOPLU TEST ---
+function showSampleGrid(btn) {
+    showPanelSpinner(btn);
+    const num = document.getElementById("batchSampleInput").value;
     const grid = document.getElementById("sampleGrid");
-    grid.style.display = "none";
+    grid.innerHTML = "";
 
-    showPanelSpinner(button);
-
-    fetch(`/predict_batch_test/${numSamples}`)
+    fetch(`/predict_batch_test/${num}`)
         .then(r => r.json())
         .then(data => {
-
-            grid.innerHTML = "";
             grid.style.display = "grid";
-            grid.style.gap = "10px";
-
             data.forEach(item => {
                 let card = document.createElement("div");
-                card.className = "sample-card";
-
-                // Hover animasyonu
-                card.style.transition = "transform 0.15s ease";
-                card.style.cursor = "pointer";
-                card.onmouseover = () => (card.style.transform = "scale(1.05)");
-                card.onmouseout  = () => (card.style.transform = "scale(1)");
-
-                // DÜZELTME: İsim karşılaştırması
-                const isMatch = item.prediction_name === item.class_name;
-
-                card.style.border = isMatch
-                    ? "2px solid #10b981"
-                    : "2px solid #ef4444";
-                card.style.borderRadius = "12px";
-                card.style.padding = "10px";
-                card.style.background = "#ffffff";
-                card.style.boxShadow = "0 4px 10px rgba(0,0,0,0.08)";
-                card.style.textAlign = "center";
-
-                let img = document.createElement("img");
-                img.src = "data:image/png;base64," + item.test_img;
-                img.style.width = "90px";
-                img.style.height = "90px";
-                img.style.borderRadius = "8px";
-                img.style.objectFit = "cover";
-                img.style.marginBottom = "6px";
-                card.appendChild(img);
-
-                let lbl = document.createElement("div");
-                lbl.style.fontSize = "12px";
-                lbl.style.fontWeight = "600";
-                lbl.style.marginTop = "4px";
+                card.className = "imgBox";
+                card.style.width = "auto";
                 
-                // DÜZELTME: İsimleri yazdırıyoruz
-                lbl.innerHTML =
-                    `<span style="background:${isMatch?'#d1fae5':'#fee2e2'}; padding:4px 8px; border-radius:6px; display:inline-block; min-width:60px;">
-                        ${item.class_name} <br>⬇<br> ${item.prediction_name}
-                    </span>`;
-                card.appendChild(lbl);
+                const isMatch = item.prediction_name === item.class_name;
+                card.style.border = isMatch ? "2px solid #10b981" : "2px solid #ef4444";
 
+                // DÜZELTME: Prefix yok
+                let img = document.createElement("img");
+                img.src = item.test_img;
+                img.style.width = "80px"; img.style.height = "80px";
+                
+                let lbl = document.createElement("div");
+                lbl.style.fontSize="12px"; lbl.style.fontWeight="bold";
+                lbl.innerHTML = `${item.class_name} <br>⬇<br> ${item.prediction_name}`;
+
+                card.appendChild(img);
+                card.appendChild(lbl);
                 grid.appendChild(card);
             });
-
-            document.getElementById("sampleGridBox").style.display = "block";
-            hidePanelSpinner(button);
+            hidePanelSpinner(btn);
         })
-        .catch(err => {
-            console.error(err);
-            hidePanelSpinner(button);
-        });
+        .catch(e => { console.error(e); hidePanelSpinner(btn); });
 }
 
-
-// ----------------------------------
-// CONFUSION MATRIX PANELİ
-// ----------------------------------
-function toggleConfusionPanel() {
-    const box = document.getElementById("cmBox");
-    box.style.display = (box.style.display === "block") ? "none" : "block";
-}
-
-function loadConfusionMatrix(button) {
-    const numSamples = parseInt(document.getElementById("cmSampleInput").value) || 30;
-    document.getElementById("cmTitle").innerText = `📘 Confusion Matrix – Rastgele ${numSamples} Örnek`;
-
-    showPanelSpinner(button);
-
-    fetch(`/confusion_samples/${numSamples}`)
+// --- CONFUSION MATRIX ---
+function loadConfusionMatrix(btn) {
+    showPanelSpinner(btn);
+    const num = document.getElementById("cmSampleInput").value;
+    fetch(`/confusion_samples/${num}`)
         .then(r => r.json())
         .then(data => {
-            const cmImg = document.getElementById("cmImg");
-            cmImg.src = "data:image/png;base64," + data.img;
-            document.getElementById("cmBox").style.display = "block";
-            hidePanelSpinner(button);
-        })
-        .catch(err => {
-            console.error(err);
-            hidePanelSpinner(button);
+            // DÜZELTME: Matris resmi için prefix gerekiyor
+            document.getElementById("cmImg").src = "data:image/png;base64," + data.img;
+            hidePanelSpinner(btn);
         });
 }
 
-// ----------------------------------
-// EPOCH GRAFİĞİ PANELİ
-// ----------------------------------
-function toggleEpochGraph() {
-    const box = document.getElementById("epochGraphBox");
-    if (!epochGraphVisible) {
-        box.style.display = "block";
-        epochGraphVisible = true;
-        loadEpochPlot();
-    } else {
-        box.style.display = "none";
-        epochGraphVisible = false;
-    }
-}
-
+// --- EPOCH ---
 function loadEpochPlot() {
     const img = document.getElementById("epochGraphImg");
-    showSpinner();
-    fetch("/epoch_plot")
-        .then(r => r.json())
-        .then(data => {
-            if (data.error) { alert(data.error); hideSpinner(); return; }
-            img.src = "data:image/png;base64," + data.img;
-            hideSpinner();
-        })
-        .catch(err => { console.error(err); hideSpinner(); });
+    fetch("/epoch_plot").then(r => r.json()).then(data => {
+        if(!data.error) img.src = "data:image/png;base64," + data.img;
+    });
 }
 
-// ----------------------------------
-// FULL TEST ANALİZİ PANELİ
-// ----------------------------------
-function toggleFullTestBox() {
-    const box = document.getElementById("fullTestBox");
-    fullTestVisible = !fullTestVisible;
-    box.style.display = fullTestVisible ? "block" : "none";
-}
-
-function loadFullTestAnalysis(button) {
-    const spinner = button.parentElement.querySelector(".panelSpinner");
-    if (spinner) spinner.style.display = "flex";
-    button.disabled = true;
-
+// --- FULL TEST ---
+function loadFullTestAnalysis(btn) {
+    showPanelSpinner(btn);
     document.getElementById("summaryTable").style.display = "none";
-    document.getElementById("fullCmImg").style.display = "none";
-
+    
     fetch("/full_test_analysis")
         .then(r => r.json())
         .then(data => {
@@ -477,169 +289,70 @@ function loadFullTestAnalysis(button) {
             tbody.innerHTML = "";
             data.summary.forEach(row => {
                 let tr = document.createElement("tr");
-                let color = "";
-                if (row.aciklama.toLowerCase().includes("doğruluk")) {
-                    if (row.deger >= 90) color = "style='background:#d1fae5;'";
-                    else if (row.deger >= 70) color = "style='background:#fef9c3;'";
-                    else color = "style='background:#fee2e2;'";
-                }
-                tr.innerHTML = `<td style="padding:10px; border:1px solid #ccc; font-weight:bold;">${row.aciklama}</td>
-                                <td ${color} style="padding:10px; border:1px solid #ccc;">${row.deger}</td>`;
+                tr.innerHTML = `<td style="border:1px solid #ddd; padding:8px;">${row.aciklama}</td>
+                                <td style="border:1px solid #ddd; padding:8px;">${row.deger}</td>`;
                 tbody.appendChild(tr);
             });
-
-            document.getElementById("fullCmImg").src = "data:image/png;base64," + data.cm;
             document.getElementById("summaryTable").style.display = "table";
+            document.getElementById("fullCmImg").src = "data:image/png;base64," + data.cm;
             document.getElementById("fullCmImg").style.display = "block";
-
-            if (spinner) spinner.style.display = "none";
-            button.disabled = false;
-        })
-        .catch(err => {
-            console.error(err);
-            if (spinner) spinner.style.display = "none";
-            button.disabled = false;
+            hidePanelSpinner(btn);
         });
 }
 
-// ----------------------------------
-// PROGRESS & LOGS
-// ----------------------------------
-function updateProgress() {
-    fetch("/progress")
-        .then(r => r.json())
-        .then(data => {
-            if (data.percent !== lastProgress) {
-                const bar = document.getElementById("progressBar");
-                bar.style.width = data.percent + "%";
-                bar.innerText = data.percent + "%";
-                document.getElementById("statusText").innerText = "Durum: " + data.status;
-                lastProgress = data.percent;
-            }
-            if (!data.running) {
-                document.getElementById("startBtn").disabled = false;
-                document.getElementById("stopBtn").disabled = true;
-            }
-            if (showLogs) {
-                fetch("/logs")
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.logs.length !== lastLogsLength) {
-                            let box = document.getElementById("logsBox");
-                            box.innerHTML = data.logs.join("<br>");
-                            box.scrollTop = box.scrollHeight;
-                            lastLogsLength = data.logs.length;
-                        }
-                    });
-            }
-        });
-}
-
-
-
-
-function toggleUploadPanel() {
-    const panel = document.getElementById("uploadBox");
-    panel.style.display = (panel.style.display === "none" || panel.style.display === "") 
-        ? "block" 
-        : "none";
-}
-/* ----------------------------------
-   UPLOAD TAHMİNİ
----------------------------------- */
+// --- UPLOAD ---
 function uploadPanel() {
     const input = document.getElementById("uploadImage");
-    const resultBox = document.getElementById("uploadResult");
     const spinner = document.getElementById("uploadSpinner");
+    const resBox = document.getElementById("uploadResult");
 
-    if (!input.files || input.files.length === 0) {
-        alert("Lütfen bir görsel seçin.");
-        return;
-    }
-
+    if(!input.files[0]) return alert("Dosya seçin!");
     spinner.style.display = "flex";
+    
+    let fd = new FormData();
+    fd.append("image", input.files[0]);
 
-    let formData = new FormData();
-    formData.append("image", input.files[0]);
+    fetch("/predict_upload", {method:"POST", body:fd})
+        .then(r => r.json())
+        .then(data => {
+            spinner.style.display = "none";
+            resBox.style.display = "block";
+            if(data.error) { resBox.innerHTML = data.error; return; }
 
-    fetch("/predict_upload", {
-        method: "POST",
-        body: formData
-    })
-    .then(r => r.json())
-    .then(data => {
-        spinner.style.display = "none";
-        resultBox.style.display = "block";
-
-        if (data.error) {
-            resultBox.innerHTML = `<span style='color:red;'>${data.error}</span>`;
-            return;
-        }
-
-        resultBox.innerHTML = `
-            <div style="
-                padding:15px;
-                border-radius:12px;
-                border:1px solid #ddd;
-                background:white;
-                box-shadow:0 2px 8px rgba(0,0,0,0.08);
-            ">
-
-                <h3 style="margin-top:0;">Tahmin Sonucu</h3>
-                <b>Tahmin:</b> ${data.prediction_name} (ID: ${data.prediction})<br>
-                <b>Güven:</b> %${(data.confidence * 100).toFixed(2)}<br><br>
-
-                <div style="
-                    display:flex;
-                    justify-content:space-between;
-                    gap:20px;
-                    margin-top:15px;
-                    flex-wrap:wrap;
-                ">
-
-                    <div style="
-                        flex:1;
-                        min-width:220px;
-                        padding:15px;
-                        border-radius:10px;
-                        border:1px solid #eee;
-                        background:#fafafa;
-                        text-align:center;
-                        box-shadow:0 2px 6px rgba(0,0,0,0.05);
-                    ">
-                        <h4>Yüklenen Görsel</h4>
-                        <img src="data:image/png;base64,${data.test_img}"
-                             style="width:180px; border-radius:10px; border:1px solid #ccc;">
-                    </div>
-
-                    <div style="
-                        flex:1;
-                        min-width:220px;
-                        padding:15px;
-                        border-radius:10px;
-                        border:1px solid #eee;
-                        background:#fafafa;
-                        text-align:center;
-                        box-shadow:0 2px 6px rgba(0,0,0,0.05);
-                    ">
-                        <h4>Tahmin Edilen Sınıf</h4>
-                        <img src="data:image/png;base64,${data.meta_img}"
-                             style="width:180px; border-radius:10px; border:1px solid #ccc;">
-                    </div>
-
+            resBox.innerHTML = `
+                <b>Tahmin:</b> ${data.prediction_name} (%${(data.confidence*100).toFixed(1)})<br><br>
+                <div style="display:flex; gap:10px;">
+                    <div>Yüklenen:<br><img src="${data.test_img}" width="100"></div>
+                    <div>Sınıf:<br><img src="${data.meta_img}" width="100"></div>
                 </div>
-            </div>
-        `;
-    })
-    .catch(err => {
-        spinner.style.display = "none";
-        console.error(err);
-        resultBox.style.display = "block";
-        resultBox.innerHTML = "<span style='color:red;'>Tahmin yapılırken bir hata oluştu.</span>";
-    });
+            `;
+        });
 }
 
-setInterval(updateProgress, 500);
+// --- LOGS ---
+function updateProgress() {
+    fetch("/progress").then(r => r.json()).then(data => {
+        if(data.percent !== lastProgress) {
+            document.getElementById("progressBar").style.width = data.percent + "%";
+            document.getElementById("progressBar").innerText = data.percent + "%";
+            document.getElementById("statusText").innerText = data.status;
+            lastProgress = data.percent;
+        }
+        if(!data.running) {
+            document.getElementById("startBtn").disabled = false;
+            document.getElementById("stopBtn").disabled = true;
+        }
+    });
+    if(showLogs) {
+        fetch("/logs").then(r => r.json()).then(data => {
+            if(data.logs.length !== lastLogsLength) {
+                document.getElementById("logsBox").innerHTML = data.logs.join("<br>");
+                lastLogsLength = data.logs.length;
+            }
+        });
+    }
+}
+setInterval(updateProgress, 1000);
 </script>
 </body>
 </html>
