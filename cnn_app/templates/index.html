@@ -99,7 +99,6 @@ button:hover:not(:disabled) { background:#2563eb; transform: translateY(-2px); b
     <h3>📊 Rastgele Tek Test Örneği</h3>
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
         <button id="runTestBtn" onclick="runTestSample(this)">🔄 Rastgele Test Yap</button>
-        <!-- Spinner sadece bu butonun yanında -->
         <div class="panelSpinner">
             <div class="loader"></div>
         </div>
@@ -127,7 +126,6 @@ button:hover:not(:disabled) { background:#2563eb; transform: translateY(-2px); b
         <input type="number" id="batchSampleInput" value="50" min="5" max="500" 
                style="padding:5px; width:80px;">
         <button id="showSampleBtn" onclick="showSampleGrid(this)">Göster</button>
-        <!-- Spinner sadece bu butonun yanında -->
         <div class="panelSpinner">
             <div class="loader"></div>
         </div>
@@ -152,7 +150,6 @@ button:hover:not(:disabled) { background:#2563eb; transform: translateY(-2px); b
 <div id="fullTestBox" style="display:none; margin-top:30px; padding:15px; background:white; border-radius:10px; border:1px solid #aaa;">
     <h3>📊 Tam Test Seti Analizi</h3>
 
-    <!-- Buton ve spinner aynı hizada -->
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
         <button onclick="loadFullTestAnalysis(this)">Tam Testi Çalıştır</button>
         <div class="panelSpinner">
@@ -181,9 +178,6 @@ button:hover:not(:disabled) { background:#2563eb; transform: translateY(-2px); b
     <img id="epochGraphImg" src="" >
 </div>
 
-<!-- ----------------------------------
-     UPLOAD TAHMİN PANELİ
----------------------------------- -->
 <div id="uploadBox" style="display: none; margin-top:30px; padding:15px; background:white; border-radius:10px; border:1px solid #aaa;">
     <h3>📷 Görsel Yükleyerek Tahmin</h3>
 
@@ -292,12 +286,17 @@ function runTestSample(button) {
             content.style.display = "flex";
             document.getElementById("testImg").src = "data:image/png;base64," + data.test_img;
             document.getElementById("metaImg").src = "data:image/png;base64," + data.meta_img;
-            document.getElementById("trueLabel").innerHTML = "Gerçek Sınıf: <b>" + data.true_label + "</b>";
+            
+            // DÜZELTME: Backend 'class_name' döndürüyor.
+            document.getElementById("trueLabel").innerHTML = "Gerçek Sınıf: <b>" + data.class_name + "</b>";
 
             const pred = document.getElementById("predLabel");
-            pred.innerHTML = (data.prediction === data.true_label)
-                ? `Tahmin: <span class='label-ok'>${data.prediction} ✓</span>`
-                : `Tahmin: <span class='label-wrong'>${data.prediction} ✗</span>`;
+            // DÜZELTME: İsim karşılaştırması yapıyoruz (prediction_name)
+            const isCorrect = data.prediction_name === data.class_name;
+
+            pred.innerHTML = isCorrect
+                ? `Tahmin: <span class='label-ok'>${data.prediction_name} ✓</span>`
+                : `Tahmin: <span class='label-wrong'>${data.prediction_name} ✗</span>`;
 
             hidePanelSpinner(button);
         })
@@ -346,13 +345,16 @@ function showSampleGrid(button) {
                 let card = document.createElement("div");
                 card.className = "sample-card";
 
-                // Hover animasyonu (geri eklendi!)
+                // Hover animasyonu
                 card.style.transition = "transform 0.15s ease";
                 card.style.cursor = "pointer";
                 card.onmouseover = () => (card.style.transform = "scale(1.05)");
                 card.onmouseout  = () => (card.style.transform = "scale(1)");
 
-                card.style.border = (item.prediction === item.true_label)
+                // DÜZELTME: İsim karşılaştırması
+                const isMatch = item.prediction_name === item.class_name;
+
+                card.style.border = isMatch
                     ? "2px solid #10b981"
                     : "2px solid #ef4444";
                 card.style.borderRadius = "12px";
@@ -374,9 +376,11 @@ function showSampleGrid(button) {
                 lbl.style.fontSize = "12px";
                 lbl.style.fontWeight = "600";
                 lbl.style.marginTop = "4px";
+                
+                // DÜZELTME: İsimleri yazdırıyoruz
                 lbl.innerHTML =
-                    `<span style="background:${item.prediction===item.true_label?'#d1fae5':'#fee2e2'}; padding:4px 8px; border-radius:6px; display:inline-block; min-width:60px;">
-                        ${item.true_label} → ${item.prediction}
+                    `<span style="background:${isMatch?'#d1fae5':'#fee2e2'}; padding:4px 8px; border-radius:6px; display:inline-block; min-width:60px;">
+                        ${item.class_name} <br>⬇<br> ${item.prediction_name}
                     </span>`;
                 card.appendChild(lbl);
 
@@ -543,9 +547,6 @@ function toggleUploadPanel() {
 /* ----------------------------------
    UPLOAD TAHMİNİ
 ---------------------------------- */
-// ----------------------------------
-// UPLOAD İLE TAHMİN PANELİ
-// ----------------------------------
 function uploadPanel() {
     const input = document.getElementById("uploadImage");
     const resultBox = document.getElementById("uploadResult");
@@ -585,7 +586,7 @@ function uploadPanel() {
             ">
 
                 <h3 style="margin-top:0;">Tahmin Sonucu</h3>
-                <b>Tahmin:</b> ${data.prediction}<br>
+                <b>Tahmin:</b> ${data.prediction_name} (ID: ${data.prediction})<br>
                 <b>Güven:</b> %${(data.confidence * 100).toFixed(2)}<br><br>
 
                 <div style="
@@ -596,7 +597,6 @@ function uploadPanel() {
                     flex-wrap:wrap;
                 ">
 
-                    <!-- TEST RESMİ KARTI -->
                     <div style="
                         flex:1;
                         min-width:220px;
@@ -612,7 +612,6 @@ function uploadPanel() {
                              style="width:180px; border-radius:10px; border:1px solid #ccc;">
                     </div>
 
-                    <!-- META RESİM KARTI -->
                     <div style="
                         flex:1;
                         min-width:220px;
@@ -639,10 +638,6 @@ function uploadPanel() {
         resultBox.innerHTML = "<span style='color:red;'>Tahmin yapılırken bir hata oluştu.</span>";
     });
 }
-
-
-
-
 
 setInterval(updateProgress, 500);
 </script>
